@@ -157,6 +157,6 @@ superfreq
 superfreq.exe
 
 #milobot
-output.png
-output.png_ps3
-output.png_xbox
+*.png
+*.png_ps3
+*.png_xbox

@@ -54,7 +54,7 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send('milo harmonix')
+            await message.channel.send('milo harmonix. Ping: {0}ms'.format(round(client.latency * 1000, 1)))
         
     if message.channel.id != bot_channel and message.guild:
         return
@@ -62,44 +62,84 @@ async def on_message(message):
     if len(message.attachments) == 0:
         return
 
-    image_url = message.attachments[0].url
+    file_url = message.attachments[0].url
     height = message.attachments[0].height
     width = message.attachments[0].width
-    #print(bin(height)+" "+bin(width)+" "+image_url[-4:])
-    if bin(height).count("1") != 1:
-        await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-        return
-    if height < 4:
-        await message.channel.send('Please input a larger image.')
-        return 
-    if bin(width).count("1") != 1:
-        await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-        return
-    if width < 4:
-        await message.channel.send('Please input a larger image.')
-        return 
-    if image_url[-4:] != '.png':
-        await message.channel.send('Invalid image format, the image must be a PNG.')
-        return
+
+    #print(bin(height)+" "+bin(width)+" "+file_url[-4:])
+    
+    file_format = None
+
+    if file_url[-4:] == '.png':
+        if bin(height).count("1") != 1:
+            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            return
+        if height < 4:
+            await message.channel.send('Please input a larger image.')
+            return 
+        if bin(width).count("1") != 1:
+            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            return
+        if width < 4:
+            await message.channel.send('Please input a larger image.')
+            return 
+        file_format = 'png'
+    elif file_url[-9:] == '.png_xbox':
+        file_format = 'png_xbox'
+    elif file_url[-8:] == '.png_ps3':
+        file_format = 'png_ps3'
+    else:
+        await message.channel.send('Invalid file submitted. Verify that the file extension is valid.')
+
     os.chdir(current_directory)
     
     line = random.choice(open(conversion_quotes_path).readlines())
-    image_id = random.randrange(10000000000001)
-    image_path = f"{image_id}.png"
-    xbox_path = f"{image_id}.png_xbox"
-    ps3_path = f"{image_id}.png_ps3"
+    file_id = random.randrange(10000000000001)
 
     await message.channel.send(f'{line}')
-    image = requests.get(image_url, allow_redirects=True)
 
-    with open(image_path, "wb") as f:
-        f.write(image.content)
-    subprocess.run([superfreq_path, "png2tex", image_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
-    subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
-    await message.channel.send(file=discord.File(xbox_path))
-    await message.channel.send(file=discord.File(ps3_path))
-    os.remove(f"./{image_id}.png_xbox")
-    os.remove(f"./{image_id}.png_ps3")
-    os.remove(f"./{image_id}.png") # Cleanup
+    if file_format == 'png':
+        file_path = f".\\{file_id}.png"
+        xbox_path = f".\\{file_id}.png_xbox"
+        ps3_path = f".\\{file_id}.png_ps3"
+
+        file = requests.get(file_url, allow_redirects=True)
+        with open(file_path, "wb") as f:
+            f.write(file.content)
+        subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
+        subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
+        await message.channel.send(file=discord.File(xbox_path))
+        await message.channel.send(file=discord.File(ps3_path))
+        os.remove(f"./{file_id}.png_xbox")
+        os.remove(f"./{file_id}.png_ps3")
+        os.remove(f"./{file_id}.png") # Cleanup
+
+    elif file_format == 'png_xbox':
+        file_path = str(f".\\{file_id}.png")
+        xbox_path = str(f".\\{file_id}.png_xbox")
+
+        xbox = requests.get(file_url, allow_redirects=True)
+        with open(xbox_path, "wb") as f:
+            f.write(xbox.content)
+        subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
+        await message.channel.send(file=discord.File(file_path))
+        os.remove(f"./{file_id}.png_xbox")
+        os.remove(f"./{file_id}.png") # Cleanup
+
+    elif file_format == 'png_ps3':
+        file_path = str(f".\\{file_id}.png")
+        ps3_path = str(f".\\{file_id}.png_ps3")
+
+        ps3 = requests.get(file_url, allow_redirects=True)
+        with open(ps3_path, "wb") as f:
+            f.write(ps3.content)
+        subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
+        await message.channel.send(file=discord.File(file_path))
+        os.remove(f"./{file_id}.png_ps3")
+        os.remove(f"./{file_id}.png") # Cleanup
+
+    elif file_format == None:
+        await message.channel.send('An unexpected error happened.')
+        return
 
 client.run(TOKEN) 
