@@ -1,6 +1,6 @@
 # Milohax Art Swap bot written by femou and qfoxb. (c) 2023
 
-version = "1.3"
+version = "1.4"
 
 import os
 import subprocess
@@ -57,7 +57,7 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send(f'milo harmonix. Running version {version} Ping: {0}ms'.format(round(client.latency * 1000, 1)))
+            await message.channel.send(f'milo harmonix. Running version {version}'+' Ping: {0}ms'.format(round(client.latency * 1000, 1)))
         
     if message.channel.id != bot_channel and message.guild:
         return
@@ -102,9 +102,9 @@ async def on_message(message):
     await message.channel.send(f'{line}')
 
     if file_format == 'png':
-        file_path = f".\\{file_id}.png"
-        xbox_path = f".\\{file_id}.png_xbox"
-        ps3_path = f".\\{file_id}.png_ps3"
+        file_path = f"./{file_id}.png"
+        xbox_path = f"./{file_id}.png_xbox"
+        ps3_path = f"./{file_id}.png_ps3"
 
         file = requests.get(file_url, allow_redirects=True)
         with open(file_path, "wb") as f:
@@ -118,8 +118,8 @@ async def on_message(message):
         os.remove(f"./{file_id}.png") # Cleanup
 
     elif file_format == 'png_xbox':
-        file_path = str(f".\\{file_id}.png")
-        xbox_path = str(f".\\{file_id}.png_xbox")
+        file_path = str(f"./{file_id}.png")
+        xbox_path = str(f"./{file_id}.png_xbox")
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
@@ -130,8 +130,8 @@ async def on_message(message):
         os.remove(f"./{file_id}.png") # Cleanup
 
     elif file_format == 'png_ps3':
-        file_path = str(f".\\{file_id}.png")
-        ps3_path = str(f".\\{file_id}.png_ps3")
+        file_path = str(f"./{file_id}.png")
+        ps3_path = str(f"./{file_id}.png_ps3")
 
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
