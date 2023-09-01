@@ -51,10 +51,14 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:  
         return
+    
+    for mentions in message.mentions:
+        if mentions == client.user:
+            await message.channel.send('milo harmonix')
         
     if message.channel.id != bot_channel and message.guild:
         return
-
+    
     if len(message.attachments) == 0:
         return
 
