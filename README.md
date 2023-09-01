@@ -1,0 +1,9 @@
+#milobot
+
+
+
+# .env values
+```
+TOKEN=INSERT BOT TOKEN HERE
+CHANNEL_ID=INSERT CHANNEL ID HERE
+```
