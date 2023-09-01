@@ -20,10 +20,8 @@ Out here getting loose..
 Sending your image to the Shack..
 Hey bud, here's your texture..
 Having a fun, relaxing time..	
-<:spray:1146904844389580801>
 Wieners dont mod milo..
 Splatoon is mid..
-Yarg? More like Sharg..
 I swear if this is a Kimbey Comm Highway..
 Access violation reading location 0x8 (joking)..
 Invalid read from 0x3133203a, PC = 0x8046d178. Only Emma knows what this means.
@@ -32,3 +30,4 @@ No, you can't use custom textures on Wii.
 Loading the entire Shrek 2 movie into memory..
 Escaping the Docker container..
 Cooking something up..
+Can't make BU..
