@@ -1,4 +1,7 @@
 # Milohax Art Swap bot written by femou and qfoxb. (c) 2023
+
+version = "1.3"
+
 import os
 import subprocess
 
@@ -54,7 +57,7 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send('milo harmonix. Ping: {0}ms'.format(round(client.latency * 1000, 1)))
+            await message.channel.send(f'milo harmonix. Running version {version} Ping: {0}ms'.format(round(client.latency * 1000, 1)))
         
     if message.channel.id != bot_channel and message.guild:
         return
