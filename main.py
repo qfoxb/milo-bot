@@ -11,7 +11,6 @@ for package in packages:
         subprocess.check_call(["pip", "install", package])
 import discord
 import logging
-import os
 from dotenv import load_dotenv
 import requests
 import random
@@ -27,6 +26,10 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 bot_channel = int(os.getenv("CHANNEL_ID"))
 quotes_file = 'status_quotes.txt'
 conversion_quotes_file = 'conversion_quotes.txt'
+superfreq = "superfreq"
+swap_bytes = "convert.py"
+superfreq_path = os.path.join(current_directory, superfreq)
+swap_bytes_path = os.path.join(current_directory, swap_bytes)
 
 quotes_path = os.path.join(current_directory, quotes_file)
 conversion_quotes_path = os.path.join(current_directory, conversion_quotes_file)
@@ -81,12 +84,7 @@ async def on_message(message):
     image_path = f"{image_id}.png"
     xbox_path = f"{image_id}.png_xbox"
     ps3_path = f"{image_id}.png_ps3"
-    superfreq = "superfreq"
-    swap_bytes = "convert.py"
-    superfreq_path = os.path.join(current_directory, superfreq)
-    swap_bytes_path = os.path.join(current_directory, swap_bytes)
 
-    
     await message.channel.send(f'{line}')
     image = requests.get(image_url, allow_redirects=True)
 
