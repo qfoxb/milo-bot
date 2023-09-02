@@ -68,6 +68,9 @@ async def on_message(message):
             if version == latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             else:
+                # Debug
+                print(latestver)
+                print('Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
 
     if message.channel.id != bot_channel and message.guild:
