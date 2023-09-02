@@ -89,7 +89,7 @@ async def on_message(message):
         file_format = 'png'
     elif file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
         file_format = 'xbox'
-    elif file_url[-8:] == '.png_ps3':
+    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
         file_format = 'ps3'
     else:
         await message.channel.send('Invalid file format submitted. Run $ff to see the file format currently supported.')
@@ -133,14 +133,14 @@ async def on_message(message):
 
     elif file_format == 'ps3':
         file_path = str(f"./{file_id}.png")
-        ps3_path = str(f"./{file_id}.png_ps3")
+        ps3_path = str(f"./{file_id}.{file_url[-7:]}")
 
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
             f.write(ps3.content)
         subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.png_ps3")
+        os.remove(f"./{file_id}.{file_url[-7:]}")
         os.remove(f"./{file_id}.png") # Cleanup
 
     elif file_format == None:
