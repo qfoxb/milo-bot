@@ -19,11 +19,11 @@ import requests
 import random
 import asyncio
 
-latestver = version # this will work i promise
-
 async def update_check():
     while True:
         latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/version-1.5/latest.version', allow_redirects=True)
+        with open("latest.version", "wb") as f:
+            f.write(latestver.content)
         await asyncio.sleep(10800) # 3 Hours
 
 load_dotenv()
@@ -55,6 +55,7 @@ async def on_ready():
     print(f'Bot has logged in as {client.user}.')
     client.loop.create_task(status_task())
     client.loop.create_task(update_check())
+
 @client.event
 async def on_message(message):
     if message.author == client.user:  
@@ -62,10 +63,12 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
+            # Checking version
+            latestver = open('latest.version').read()
             if version == latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             else:
-                    await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f' *An update is available! Latest version: {latestver}*');
+                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
 
     if message.channel.id != bot_channel and message.guild:
         return
