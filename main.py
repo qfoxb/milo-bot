@@ -1,6 +1,6 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.5"
+version = "1.6"
 
 import os
 import subprocess
@@ -21,7 +21,7 @@ import asyncio
 
 async def update_check():
     while True:
-        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/version-1.5/latest.version', allow_redirects=True)
+        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/main/latest.version', allow_redirects=True)
         with open("latest.version", "wb") as f:
             f.write(latestver.content)
         await asyncio.sleep(10800) # 3 Hours
@@ -68,9 +68,6 @@ async def on_message(message):
             if version == latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             else:
-                # Debug
-                print(latestver)
-                print('Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
 
     if message.channel.id != bot_channel and message.guild:
