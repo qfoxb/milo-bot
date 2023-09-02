@@ -1,4 +1,4 @@
-# Milohax Art Swap bot written by femou and qfoxb. (c) 2023
+# Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
 version = "1.5"
 
@@ -18,6 +18,8 @@ from dotenv import load_dotenv
 import requests
 import random
 import asyncio
+
+latestver = version # this will work i promise
 
 async def update_check():
     while True:
@@ -52,6 +54,7 @@ async def status_task():
 async def on_ready():
     print(f'Bot has logged in as {client.user}.')
     client.loop.create_task(status_task())
+    client.loop.create_task(update_check())
 @client.event
 async def on_message(message):
     if message.author == client.user:  
@@ -59,10 +62,10 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            if version = latestver:
-            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-            else
-            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}'*)
+            if version == latestver:
+                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+            else:
+                    await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f' *An update is available! Latest version: {latestver}*');
 
     if message.channel.id != bot_channel and message.guild:
         return

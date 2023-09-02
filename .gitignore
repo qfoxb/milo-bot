@@ -160,3 +160,4 @@ superfreq.exe
 *.png
 *.png_ps3
 *.png_xbox
+.vscode/
