@@ -1,6 +1,6 @@
-# Milohax Art Swap bot written by femou and qfoxb. (c) 2023
+# Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.4"
+version = "1.5"
 
 import os
 import subprocess
@@ -18,6 +18,13 @@ from dotenv import load_dotenv
 import requests
 import random
 import asyncio
+
+async def update_check():
+    while True:
+        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/version-1.5/latest.version', allow_redirects=True)
+        with open("latest.version", "wb") as f:
+            f.write(latestver.content)
+        await asyncio.sleep(10800) # 3 Hours
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -42,14 +49,13 @@ async def status_task():
         random_status = random.choice(open(quotes_path).readlines())
         await client.change_presence(activity=discord.Game(name=random_status))
         await asyncio.sleep(60)
-        random_status = random.choice(open(quotes_path).readlines())
-        await client.change_presence(activity=discord.Game(name=random_status))
-        await asyncio.sleep(60)
 
 @client.event
 async def on_ready():
     print(f'Bot has logged in as {client.user}.')
     client.loop.create_task(status_task())
+    client.loop.create_task(update_check())
+
 @client.event
 async def on_message(message):
     if message.author == client.user:  
@@ -57,12 +63,20 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send(f'milo harmonix. Running version {version}'+' Ping: {0}ms'.format(round(client.latency * 1000, 1)))
-        
+            # Checking version
+            latestver = open('latest.version').read()
+            if version == latestver:
+                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+            else:
+                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
+
     if message.channel.id != bot_channel and message.guild:
         return
     
     if len(message.attachments) == 0:
+        if message.content == "$ff" or message.content == "$fileformat":
+            await message.channel.send('File formats supported:\n`.png` -> `.png_xbox` & `.png_ps3`\n`.png_xbox`, `.bmp_xbox` or `.png_ps3` -> `.png`')
+            return
         return
 
     file_url = message.attachments[0].url
@@ -87,12 +101,13 @@ async def on_message(message):
             await message.channel.send('Please input a larger image.')
             return 
         file_format = 'png'
-    elif file_url[-9:] == '.png_xbox':
-        file_format = 'png_xbox'
-    elif file_url[-8:] == '.png_ps3':
-        file_format = 'png_ps3'
+    elif file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
+        file_format = 'xbox'
+    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
+        file_format = 'ps3'
     else:
-        await message.channel.send('Invalid file submitted. Verify that the file extension is valid.')
+        await message.channel.send('Invalid file format submitted. Run $ff to see the file format currently supported.')
+        return
 
     os.chdir(current_directory)
     
@@ -113,36 +128,37 @@ async def on_message(message):
         subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
         await message.channel.send(file=discord.File(xbox_path))
         await message.channel.send(file=discord.File(ps3_path))
-        os.remove(f"./{file_id}.png_xbox")
-        os.remove(f"./{file_id}.png_ps3")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(ps3_path)
+        os.remove(xbox_path)
+        os.remove(file_path) # Cleanup
 
-    elif file_format == 'png_xbox':
+    elif file_format == 'xbox':
         file_path = str(f"./{file_id}.png")
-        xbox_path = str(f"./{file_id}.png_xbox")
+        
+        xbox_path = str(f"./{file_id}.{file_url[-8:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered.
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
             f.write(xbox.content)
         subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.png_xbox")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(xbox_path)
+        os.remove(file_path) # Cleanup
 
-    elif file_format == 'png_ps3':
+    elif file_format == 'ps3':
         file_path = str(f"./{file_id}.png")
-        ps3_path = str(f"./{file_id}.png_ps3")
+        ps3_path = str(f"./{file_id}.{file_url[-7:]}")
 
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
             f.write(ps3.content)
         subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.png_ps3")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(ps3_path)
+        os.remove(file_path) # Cleanup
 
     elif file_format == None:
-        await message.channel.send('An unexpected error happened.')
+        await message.channel.send('**An unexpected error happened with the file format.**')
         return
 
 client.run(TOKEN) 
