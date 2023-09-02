@@ -1,6 +1,6 @@
 # Milohax Art Swap bot written by femou and qfoxb. (c) 2023
 
-version = "1.4"
+version = "1.5"
 
 import os
 import subprocess
@@ -42,9 +42,6 @@ async def status_task():
         random_status = random.choice(open(quotes_path).readlines())
         await client.change_presence(activity=discord.Game(name=random_status))
         await asyncio.sleep(60)
-        random_status = random.choice(open(quotes_path).readlines())
-        await client.change_presence(activity=discord.Game(name=random_status))
-        await asyncio.sleep(60)
 
 @client.event
 async def on_ready():
@@ -57,12 +54,15 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send(f'milo harmonix. Running version {version}'+' Ping: {0}ms'.format(round(client.latency * 1000, 1)))
+            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms'.format(round(client.latency * 1000, 1)))
         
     if message.channel.id != bot_channel and message.guild:
         return
     
     if len(message.attachments) == 0:
+        if message.content == "$ff" or message.content == "$fileformat":
+            await message.channel.send('File formats supported:\n`.png` -> `.png_xbox` & `.png_ps3`\n`.png_xbox`, `.bmp_xbox` or `.png_ps3` -> `.png`')
+            return
         return
 
     file_url = message.attachments[0].url
@@ -87,12 +87,13 @@ async def on_message(message):
             await message.channel.send('Please input a larger image.')
             return 
         file_format = 'png'
-    elif file_url[-9:] == '.png_xbox':
-        file_format = 'png_xbox'
+    elif file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
+        file_format = 'xbox'
     elif file_url[-8:] == '.png_ps3':
-        file_format = 'png_ps3'
+        file_format = 'ps3'
     else:
-        await message.channel.send('Invalid file submitted. Verify that the file extension is valid.')
+        await message.channel.send('Invalid file format submitted. Run $ff to see the file format currently supported.')
+        return
 
     os.chdir(current_directory)
     
@@ -117,19 +118,20 @@ async def on_message(message):
         os.remove(f"./{file_id}.png_ps3")
         os.remove(f"./{file_id}.png") # Cleanup
 
-    elif file_format == 'png_xbox':
+    elif file_format == 'xbox':
         file_path = str(f"./{file_id}.png")
-        xbox_path = str(f"./{file_id}.png_xbox")
+        
+        xbox_path = str(f"./{file_id}.{file_url[-8:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered.
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
             f.write(xbox.content)
         subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.png_xbox")
+        os.remove(f"./{file_id}.{file_url[-8:]}")
         os.remove(f"./{file_id}.png") # Cleanup
 
-    elif file_format == 'png_ps3':
+    elif file_format == 'ps3':
         file_path = str(f"./{file_id}.png")
         ps3_path = str(f"./{file_id}.png_ps3")
 
@@ -142,7 +144,7 @@ async def on_message(message):
         os.remove(f"./{file_id}.png") # Cleanup
 
     elif file_format == None:
-        await message.channel.send('An unexpected error happened.')
+        await message.channel.send('**An unexpected error happened with the file format.**')
         return
 
 client.run(TOKEN) 
