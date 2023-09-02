@@ -65,7 +65,7 @@ async def on_message(message):
         if mentions == client.user:
             # Checking version
             latestver = open('latest.version').read()
-            if version < latestver:
+            if version == latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             elif version > latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'The bot version is incorrect, please ping the devs to fix this.')
