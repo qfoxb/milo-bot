@@ -114,9 +114,9 @@ async def on_message(message):
         subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
         await message.channel.send(file=discord.File(xbox_path))
         await message.channel.send(file=discord.File(ps3_path))
-        os.remove(f"./{file_id}.png_xbox")
-        os.remove(f"./{file_id}.png_ps3")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(ps3_path)
+        os.remove(xbox_path)
+        os.remove(file_path) # Cleanup
 
     elif file_format == 'xbox':
         file_path = str(f"./{file_id}.png")
@@ -128,8 +128,8 @@ async def on_message(message):
             f.write(xbox.content)
         subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.{file_url[-8:]}")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(xbox_path)
+        os.remove(file_path) # Cleanup
 
     elif file_format == 'ps3':
         file_path = str(f"./{file_id}.png")
@@ -140,8 +140,8 @@ async def on_message(message):
             f.write(ps3.content)
         subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
         await message.channel.send(file=discord.File(file_path))
-        os.remove(f"./{file_id}.{file_url[-7:]}")
-        os.remove(f"./{file_id}.png") # Cleanup
+        os.remove(ps3_path)
+        os.remove(file_path) # Cleanup
 
     elif file_format == None:
         await message.channel.send('**An unexpected error happened with the file format.**')
