@@ -19,6 +19,11 @@ import requests
 import random
 import asyncio
 
+async def update_check():
+    while True:
+        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/version-1.5/latest.version', allow_redirects=True)
+        await asyncio.sleep(10800) # 3 Hours
+
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
@@ -54,8 +59,11 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms'.format(round(client.latency * 1000, 1)))
-        
+            if version = latestver:
+            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+            else
+            await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}'*)
+
     if message.channel.id != bot_channel and message.guild:
         return
     
