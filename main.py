@@ -1,6 +1,6 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.6"
+version = "1.7"
 
 import os
 import subprocess
@@ -126,10 +126,43 @@ async def on_message(message):
         file = requests.get(file_url, allow_redirects=True)
         with open(file_path, "wb") as f:
             f.write(file.content)
-        subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
-        subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
-        await message.channel.send(file=discord.File(xbox_path))
-        await message.channel.send(file=discord.File(ps3_path))
+        try:
+            subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
+            subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
+            await message.channel.send(file=discord.File(xbox_path))
+            await message.channel.send(file=discord.File(ps3_path))
+        except FileNotFoundError:
+            await message.channel.send("**Error: One of the processed file could not be found, superfreq most likely failed to process the image.**")
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return # Under this scenario it's extremly likely that xbox and ps3 file were not created, so it's not worth checking and potentially clogging chat with errors.
+            try:
+                os.remove(xbox_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_xbox file not found.**")
+            try:
+                os.remove(ps3_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_ps3 file not found.**")
+            return
+        except Exception as error: 
+            await message.channel.send(f"**An error occured. {error}**")
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return # See line 140
+            try:
+                os.remove(xbox_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_xbox file not found.**")
+            try:
+                os.remove(ps3_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_ps3 file not found.**")
+            return
         os.remove(ps3_path)
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
@@ -142,8 +175,27 @@ async def on_message(message):
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
             f.write(xbox.content)
-        subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
-        await message.channel.send(file=discord.File(file_path))
+        try:
+            subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
+            await message.channel.send(file=discord.File(file_path))
+        except FileNotFoundError:
+            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
+            try:
+                os.remove(xbox_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+            return
+        except Exception as error: 
+            await message.channel.send(f"**An error occured.\n**{error}")
+            try:
+                os.remove(xbox_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**The processed file could not be found, superfreq most likely also failed to process the image.**")
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
 
@@ -154,8 +206,27 @@ async def on_message(message):
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
             f.write(ps3.content)
-        subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
-        await message.channel.send(file=discord.File(file_path))
+        try:
+            subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
+            await message.channel.send(file=discord.File(file_path))
+        except FileNotFoundError:
+            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
+            try:
+                os.remove(ps3_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+            return
+        except Exception as error: 
+            await message.channel.send(f"**An error occured.**\n{error}")
+            try:
+                os.remove(ps3_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**The processed file could not be found, superfreq most likely also failed to process the image.**")
         os.remove(ps3_path)
         os.remove(file_path) # Cleanup
 
