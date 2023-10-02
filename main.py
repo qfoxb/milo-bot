@@ -1,6 +1,6 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.7"
+version = "1.8"
 
 import os
 import subprocess
