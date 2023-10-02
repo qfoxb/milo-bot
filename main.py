@@ -4,7 +4,6 @@ version = "1.7"
 
 import os
 import subprocess
-import re
 
 packages = ["discord", "python-dotenv", "requests"]
 
