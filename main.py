@@ -4,6 +4,7 @@ version = "1.7"
 
 import os
 import subprocess
+import re
 
 packages = ["discord", "python-dotenv", "requests"]
 
@@ -81,7 +82,8 @@ async def on_message(message):
             return
         return
 
-    file_url = message.attachments[0].url
+    file_url = str(message.attachments[0].url)
+    file_url = file_url.split('?')[0]
     height = message.attachments[0].height
     width = message.attachments[0].width
 
