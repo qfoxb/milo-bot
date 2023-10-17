@@ -5,7 +5,7 @@ version = "1.8"
 import os
 import subprocess
 
-packages = ["discord", "python-dotenv", "requests"]
+packages = ["discord-py", "python-dotenv", "requests"]
 
 for package in packages:
     try:
