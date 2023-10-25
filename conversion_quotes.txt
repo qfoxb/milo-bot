@@ -2,16 +2,15 @@ Milohaxing in process..
 Pissing off Harmonix..
 Who said Texture mods were hard..
 <:EZ:961456816863199232>
-Listening here..
 Peeing on the Wii's grave..
 Waiting for RB Blitz Deluxe..
 Not making GH2DX Unified..
 Not working on ps2 merge..
 THIS IS ROCK BAND 3 DELUXE (texture modding)..
 Praying to the gradient gods..
+Praying to the Harmonix gods..
 *actually being a preservationist*..
 This update aint no Big L or anything..
-Should've done it on a wii..
 Pro Guitar has more than 5 strings?
 FAFO..
 Making the juice..
@@ -20,12 +19,11 @@ Sending your image to the Shack..
 Hey bud, here's your texture..
 Having a fun, relaxing time..
 Wieners dont mod milo..
-Splatoon is mid..
 Yarg? More like Sharg..
 I swear if this is a Kimbey Comm Highway..
-Access violation reading location 0x8 (joking)..
+Access violation reading location 0x8. ||(joking)||
 Invalid read from 0x3133203a, PC = 0x8046d178. Only Emma knows what this means.
-Error: Package "dotnet" not found.. Oh nvm it's right there.
+Error: Package "dotnet" not found.\nOh nvm it's right there
 No, you can't use custom textures on Wii.
 Loading the entire Shrek 2 movie into memory..
 Escaping the Docker container..
@@ -36,3 +34,9 @@ Getting the lawyers ready..
 Commiting tax fraud..
 <:okayge:1027496994807226448>
 Can't make BU..
+Rock Band 3 Deluxe 1.0 <:okayge:1027496994807226448>
+Hacking my way into the Harmonix FTP server..
+Sending "ratio" to the DMCA email from Harmonix..
+Removing support for Wii..
+Deleting System32..
+Decompiling RB3..

@@ -1,11 +1,15 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.8"
+version = "1.9"
+
+import sys
+if (sys.version).split(" ")[0] == "3.12.0":
+    print("This version of Python is unsupported. Please revert to 3.11")
+    sys.exit()
 
 import os
 import subprocess
-
-packages = ["discord.py", "python-dotenv", "requests"]
+packages = ["discord.py", "python-dotenv", "requests", "python-magic"]
 
 for package in packages:
     try:
@@ -13,11 +17,11 @@ for package in packages:
     except ImportError:
         subprocess.check_call(["pip", "install", package])
 import discord
-import logging
 from dotenv import load_dotenv
 import requests
 import random
 import asyncio
+import magic
 
 async def update_check():
     while True:
@@ -68,7 +72,7 @@ async def on_message(message):
             if version == latestver:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             elif version > latestver:
-                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'The bot version is incorrect, please ping the devs to fix this.')
+                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'The bot version seems to be ahead of the latest release. This could be a bug.')
             else:
                 await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
 
@@ -76,9 +80,6 @@ async def on_message(message):
         return
     
     if len(message.attachments) == 0:
-        if message.content == "$ff" or message.content == "$fileformat":
-            await message.channel.send('File formats supported:\n`.png` -> `.png_xbox` & `.png_ps3`\n`.png_xbox`, `.bmp_xbox` or `.png_ps3` -> `.png`')
-            return
         return
 
     file_url = str(message.attachments[0].url)
@@ -90,7 +91,22 @@ async def on_message(message):
     
     file_format = None
 
-    if file_url[-4:] == '.png':
+    file_id = random.randrange(10000000000001)
+    file_url_format = file_url.rpartition('.')[-1]
+    file_path = f"./{file_id}.{file_url_format}"
+
+    file = requests.get(file_url, allow_redirects=True)
+    with open(file_path, "wb") as f:
+            f.write(file.content)
+            f.close()
+
+    #print(magic.from_file(file_path, mime=True))
+
+    if file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
+        file_format = 'xbox'
+    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
+        file_format = 'ps3'
+    elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
             return
@@ -104,29 +120,20 @@ async def on_message(message):
             await message.channel.send('Please input a larger image.')
             return 
         file_format = 'png'
-    elif file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
-        file_format = 'xbox'
-    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
-        file_format = 'ps3'
     else:
-        await message.channel.send('Invalid file format submitted. Run $ff to see the file format currently supported.')
+        await message.channel.send('Could not find a valid file to format.')
         return
 
     os.chdir(current_directory)
     
     line = random.choice(open(conversion_quotes_path).readlines())
-    file_id = random.randrange(10000000000001)
 
     await message.channel.send(f'{line}')
 
     if file_format == 'png':
-        file_path = f"./{file_id}.png"
         xbox_path = f"./{file_id}.png_xbox"
         ps3_path = f"./{file_id}.png_ps3"
 
-        file = requests.get(file_url, allow_redirects=True)
-        with open(file_path, "wb") as f:
-            f.write(file.content)
         try:
             subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
             subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
