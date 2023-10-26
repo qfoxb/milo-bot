@@ -1,6 +1,6 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.9"
+version = "1.91"
 
 import sys
 if (sys.version).split(" ")[0] == "3.12.0":
@@ -109,19 +109,24 @@ async def on_message(message):
     elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            os.remove(file_path)
             return
         if height < 4:
             await message.channel.send('Please input a larger image.')
+            os.remove(file_path)
             return 
         if bin(width).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            os.remove(file_path)
             return
         if width < 4:
             await message.channel.send('Please input a larger image.')
+            os.remove(file_path)
             return 
         file_format = 'png'
     else:
         await message.channel.send('Could not find a valid file to format.')
+        os.remove(file_path)
         return
 
     os.chdir(current_directory)
