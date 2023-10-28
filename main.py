@@ -1,6 +1,6 @@
 # Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
 
-version = "1.91"
+version = "1.92"
 
 import sys
 if (sys.version).split(" ")[0] == "3.12.0":
@@ -28,6 +28,7 @@ async def update_check():
         latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/main/latest.version', allow_redirects=True)
         with open("latest.version", "wb") as f:
             f.write(latestver.content)
+            f.close()
         await asyncio.sleep(10800) # 3 Hours
 
 load_dotenv()
