@@ -41,3 +41,6 @@ Sending "ratio" to the DMCA email from Harmonix..
 Removing support for Wii..
 Deleting System32..
 Decompiling RB3..
+Crashing Xbox with the ark limit..
+It works fine for me on rpcs3..
+Rule 6.
