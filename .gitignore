@@ -163,3 +163,4 @@ superfreq.exe
 *.bmp_xbox
 *.bmp_ps3
 .vscode/
+env

@@ -1,6 +1,5 @@
-# Milohax Art Conversion bot written by femou and qfoxb. (c) 2023
-
-version = "1.92"
+# MiloBot written by femou and qfoxb. (c) 2023
+version = "1.93"
 
 import sys
 if (sys.version).split(" ")[0] == "3.12.0":
@@ -9,13 +8,15 @@ if (sys.version).split(" ")[0] == "3.12.0":
 
 import os
 import subprocess
-packages = ["discord.py", "python-dotenv", "requests", "python-magic"]
+packages = ["discord.py", "python-dotenv", "requests", "python-magic", "python-magic-bin"]
 
 for package in packages:
     try:
         __import__(package)
     except ImportError:
         subprocess.check_call(["pip", "install", package])
+        
+
 import discord
 from dotenv import load_dotenv
 import requests
@@ -30,8 +31,9 @@ async def update_check():
             f.write(latestver.content)
             f.close()
         await asyncio.sleep(10800) # 3 Hours
-
+print("attemptingtoloadenv")
 load_dotenv()
+print("dotenv laoded")
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
@@ -71,11 +73,11 @@ async def on_message(message):
             # Checking version
             latestver = open('latest.version').read()
             if version == latestver:
-                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
             elif version > latestver:
-                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'The bot version seems to be ahead of the latest release. This could be a bug.')
+                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
             else:
-                await message.channel.send(f'milo harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
+                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
 
     if message.channel.id != bot_channel and message.guild:
         return
@@ -209,7 +211,7 @@ async def on_message(message):
             try:
                 os.remove(file_path)
             except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, superfreq most likely also failed to process the image.**")
+                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
 
@@ -240,7 +242,7 @@ async def on_message(message):
             try:
                 os.remove(file_path)
             except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, superfreq most likely also failed to process the image.**")
+                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
         os.remove(ps3_path)
         os.remove(file_path) # Cleanup
 
