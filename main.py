@@ -1,5 +1,6 @@
-# MiloBot written by femou and qfoxb. (c) 2023
-version = "1.94"
+# HarmBot written by femou and qfoxb and glitchgod (c) 2023
+version = "2.00"
+PingPhrase = "MiloBot written by femou, qfoxb and glitchgod\nRunning version -"
 
 import os
 import subprocess
@@ -39,9 +40,13 @@ bot_channel = int(os.getenv("CHANNEL_ID"))
 quotes_file = 'status_quotes.txt'
 conversion_quotes_file = 'conversion_quotes.txt'
 superfreq = "superfreq"
+forgetool = "ForgeTool"
 swap_bytes = "convert.py"
 superfreq_path = os.path.join(current_directory, superfreq)
 swap_bytes_path = os.path.join(current_directory, swap_bytes)
+# Hello Forge Tool
+forgetool_path = os.path.join(current_directory, forgetool)
+#
 
 quotes_path = os.path.join(current_directory, quotes_file)
 conversion_quotes_path = os.path.join(current_directory, conversion_quotes_file)
@@ -64,16 +69,16 @@ async def on_message(message):
         return
     
     for mentions in message.mentions:
-        if "<@1146938776568991804>" in str(message.content): # So reply pings should be fixed by this
+        if "<@1184564938367320083>" in str(message.content): # So reply pings should be fixed by this
             if mentions == client.user:
                 # Checking version
                 latestver = open('latest.version').read()
                 if version == latestver:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
                 elif version > latestver:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
+                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
                 else:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
+                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
             else: return
 
     if message.channel.id != bot_channel and message.guild:
@@ -109,8 +114,15 @@ async def on_message(message):
 
     if file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
         file_format = 'xbox'
+        await message.channel.send(file_format)
     elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
         file_format = 'ps3'
+        await message.channel.send(file_format)
+    # Forge Only Platforms (literally only using for the elif)
+    elif file_url[-7:] == '.png_nx' or file_url[-7:] == '.bmp_nx':
+        file_format = 'nx'
+        await message.channel.send(file_format)
+    
     elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
@@ -186,8 +198,8 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
     elif file_format == 'xbox':
+        await message.channel.send("Using superfreq")
         file_path = str(f"./{file_id}.png")
-        
         xbox_path = str(f"./{file_id}.{file_url[-8:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered.
 
         xbox = requests.get(file_url, allow_redirects=True)
@@ -218,6 +230,7 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
     elif file_format == 'ps3':
+        await message.channel.send("Using superfreq")
         file_path = str(f"./{file_id}.png")
         ps3_path = str(f"./{file_id}.{file_url[-7:]}")
 
@@ -247,6 +260,39 @@ async def on_message(message):
                 await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
         os.remove(ps3_path)
         os.remove(file_path) # Cleanup
+
+    elif file_format == 'nx':
+        await message.channel.send("Using forgetool")
+        file_path = str(f"./{file_id}.png")
+        nx_path = str(f"./{file_id}.{file_url[-7:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered. # IKR! cba to add it honk shoo mimimi
+
+        nx = requests.get(file_url, allow_redirects=True)
+        with open(nx_path, "wb") as f:
+            f.write(nx.content)
+        try:
+            subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
+            await message.channel.send(file=discord.File(file_path))
+        except FileNotFoundError:
+            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+            return
+        except Exception as error: 
+            await message.channel.send(f"**An error occured.\n**{error}")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
+        os.remove(nx_path)
+        os.remove(file_path) # Cleanup
+
 
     elif file_format == None:
         await message.channel.send('**An unexpected error happened with the file format.**')
