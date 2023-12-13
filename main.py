@@ -1,10 +1,5 @@
 # MiloBot written by femou and qfoxb. (c) 2023
-version = "1.93"
-
-import sys
-if (sys.version).split(" ")[0] == "3.12.0":
-    print("This version of Python is unsupported. Please revert to 3.11")
-    sys.exit()
+version = "1.94"
 
 import os
 import subprocess
@@ -31,9 +26,9 @@ async def update_check():
             f.write(latestver.content)
             f.close()
         await asyncio.sleep(10800) # 3 Hours
-print("attemptingtoloadenv")
+#print("attemptingtoloadenv")
 load_dotenv()
-print("dotenv laoded")
+#print("dotenv laoded")
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
@@ -69,21 +64,28 @@ async def on_message(message):
         return
     
     for mentions in message.mentions:
-        if mentions == client.user:
-            # Checking version
-            latestver = open('latest.version').read()
-            if version == latestver:
-                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-            elif version > latestver:
-                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
-            else:
-                await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
+        if "<@1146938776568991804>" in str(message.content): # So reply pings should be fixed by this
+            if mentions == client.user:
+                # Checking version
+                latestver = open('latest.version').read()
+                if version == latestver:
+                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+                elif version > latestver:
+                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
+                else:
+                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
+            else: return
 
     if message.channel.id != bot_channel and message.guild:
         return
     
+    #if not message.guild:
+    #    print("Bot used in DMs")
+    
     if len(message.attachments) == 0:
         return
+    if len(message.attachments) > 1:
+        message.channel.send("**I can only process 1 file at a time!**")
 
     file_url = str(message.attachments[0].url)
     file_url = file_url.split('?')[0]
@@ -157,11 +159,11 @@ async def on_message(message):
             try:
                 os.remove(xbox_path)
             except FileNotFoundError:
-                await message.channel.send("**.png_xbox file not found.**")
+                return
             try:
                 os.remove(ps3_path)
             except FileNotFoundError:
-                await message.channel.send("**.png_ps3 file not found.**")
+                return
             return
         except Exception as error: 
             await message.channel.send(f"**An error occured. {error}**")
