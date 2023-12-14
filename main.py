@@ -9,7 +9,7 @@ import logging
 import logging.handlers
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 logging.getLogger('discord.http').setLevel(logging.WARNING)
 handler = logging.handlers.RotatingFileHandler(
     filename='discord.log',
@@ -43,6 +43,8 @@ import asyncio
 import magic
 import os
 import copy
+from glob import glob
+import sys
 
 # ENVs
 load_dotenv()
@@ -63,6 +65,15 @@ swap_bytes_path = os.path.join(current_directory, swap_bytes)
 quotes_path = os.path.join(current_directory, quotes_file)
 conversion_quotes_path = os.path.join(current_directory, conversion_quotes_file)
 forgetool_path = os.path.join(current_directory, forgetool)
+
+# Checking files
+
+if not glob('superfreq*'):
+    logging.critical("Superfreq not found! Exiting.")
+    sys.exit()
+if not glob('forgetool*'):
+    logging.critical("ForgeTool not found! Exiting.")
+    sys.exit()
 
 # Setting up discord
 load_dotenv()
