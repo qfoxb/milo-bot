@@ -93,7 +93,7 @@ async def on_message(message):
     file_url = file_url.split('?')[0]
     height = message.attachments[0].height
     width = message.attachments[0].width
-    file_extension = copy.deepcopy(file_url) # Copy File URL to get the extension later
+    file_extension = file_url.rsplit('.', 1)[1] # Copy File URL to get the extension later
 
     file_format = None
 
@@ -108,7 +108,7 @@ async def on_message(message):
 
     #Initialize the mess
     FileExtensionValue = 0
-    file_extension = file_extension[79:] # get file name
+    #file_extension = file_extension[79:] # get file name
 
     #This blob is where platforms are sorted for tex2png
     if file_extension.find('_ps3') > -1:
@@ -288,7 +288,10 @@ async def on_message(message):
             f.write(nx.content)
         try:
             subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
-            await message.channel.send(file=discord.File(file_path))
+            if os.path.getsize(file_path) > 1:
+                await message.channel.send(file=discord.File(file_path))
+            else:
+                await message.channel.send("**The processed file could not be found, forgetool most likely failed to process the image.**")
         except FileNotFoundError:
             await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
             try:
