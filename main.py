@@ -112,27 +112,7 @@ async def on_message(message):
     Non_HMXFile = 0
     file_extension = file_extension[79:] # get file name
 
-    #This blob is where platforms are sorted
-    #if FileExtensionValue == 0:
-    #    FileExtensionValue = file_extension.find('_ps3')
-    #    print(f'{FileExtensionValue}')  
-    #    file_format = 'ps3'
-    #    if FileExtensionValue == -1: 
-    #        FileExtensionValue = file_extension.find('_xbox')
-    #        file_format = 'xbox'
-    #        if FileExtensionValue == -1: 
-    #            FileExtensionValue = file_extension.find('_pc')
-    #            ipodBMP = 1
-    #            print(f'Treating _pc as _xbox')  
-    #            file_format = 'xbox'
-    #            if FileExtensionValue == -1: 
-    #                FileExtensionValue = file_extension.find('_nx')
-    #                file_format = 'nx'
-    #                if FileExtensionValue == -1:
-    #                    await message.channel.send('Could not find a valid file to format.')
-    #                    os.remove(file_path)
-    #                    return
-
+    #This blob is where platforms are sorted for tex2png
     if file_extension.find('_ps3') > -1:
         FileExtensionValue = file_extension.find('_ps3')
         file_format = 'ps3'
@@ -147,7 +127,7 @@ async def on_message(message):
         print(f'Treating _pc as _xbox')  
         FileExtensionValue = file_extension.find('_pc')
         file_format = 'xbox'
-    else:
+    else: #Below is for image2tex 
         if file_extension.find('.png') or file_extension.find('.jpg') or file_extension.find('.jpeg') or file_extension.find('.webp')> -1:
             Non_HMXFile = 1
         else:    
@@ -165,12 +145,8 @@ async def on_message(message):
              await message.channel.send("**bmp_pc is not supported by superfreq or ForgeTool.**")
              return
              
-    print(f'File extension is = "{file_extension}"')      # Print the file extension of the file for debugging
+    print(f'File extension is = "{file_extension}"')     # Print the file extension of the file for debugging, shows jpeg as "peg" and webp as "ebp" due to a bug i cba to fix
 
-
-    ###################################
-    ### FIX ME,FIX ME,FIX ME,FIX ME ###
-    ###################################
     if magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
@@ -189,10 +165,10 @@ async def on_message(message):
             os.remove(file_path)
             return 
         file_format = 'png'
-    #else:
-    #    await message.channel.send('Could not find a valid file to format.')
-    #    os.remove(file_path)
-    #    return
+    else:
+        await message.channel.send('Could not find a valid file to format.')
+        os.remove(file_path)
+        return
 
     os.chdir(current_directory)
     
