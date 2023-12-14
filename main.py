@@ -14,6 +14,7 @@ for package in packages:
         
 
 import discord
+import copy
 from dotenv import load_dotenv
 import requests
 import random
@@ -90,12 +91,13 @@ async def on_message(message):
     if len(message.attachments) == 0:
         return
     if len(message.attachments) > 1:
-        message.channel.send("**I can only process 1 file at a time!**")
+        await message.channel.send("**I can only process 1 file at a time!**")
 
     file_url = str(message.attachments[0].url)
     file_url = file_url.split('?')[0]
     height = message.attachments[0].height
     width = message.attachments[0].width
+    file_extension = copy.deepcopy(file_url) # Copy File URL to get the extension later
 
     #print(bin(height)+" "+bin(width)+" "+file_url[-4:])
     
@@ -112,39 +114,56 @@ async def on_message(message):
 
     #print(magic.from_file(file_path, mime=True))
 
-    if file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
-        file_format = 'xbox'
-        await message.channel.send(file_format)
-    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
+    #Initialize the mess
+    FileExtensionValue = 0
+    file_extension = file_extension[79:] # get file name
+
+    #This blob is where platforms are sorted
+    if FileExtensionValue == 0:
+        FileExtensionValue = file_extension.find('_ps3')
         file_format = 'ps3'
-        await message.channel.send(file_format)
-    # Forge Only Platforms (literally only using for the elif)
-    elif file_url[-7:] == '.png_nx' or file_url[-7:] == '.bmp_nx':
-        file_format = 'nx'
-        await message.channel.send(file_format)
+        if FileExtensionValue == -1: 
+            FileExtensionValue = file_extension.find('_xbox')
+            file_format = 'xbox'
+            if FileExtensionValue == -1: 
+                FileExtensionValue = file_extension.find('_nx')
+                file_format = 'nx'
     
-    elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
-        if bin(height).count("1") != 1:
-            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-            os.remove(file_path)
-            return
-        if height < 4:
-            await message.channel.send('Please input a larger image.')
-            os.remove(file_path)
-            return 
-        if bin(width).count("1") != 1:
-            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-            os.remove(file_path)
-            return
-        if width < 4:
-            await message.channel.send('Please input a larger image.')
-            os.remove(file_path)
-            return 
-        file_format = 'png'
-    else:
-        await message.channel.send('Could not find a valid file to format.')
-        os.remove(file_path)
-        return
+    FileExtensionValue -= 3                              # This adds the png and bmp to the full file extension
+    file_extension = file_extension[FileExtensionValue:] # trim file name to file extension value
+    await message.channel.send(f'{file_extension}')      # Print the file extension of the file
+
+
+    ###################################
+    ### FIX ME,FIX ME,FIX ME,FIX ME ###
+    ###################################
+
+
+                                                                                                                           #syntax error here now   ↓↓↓↓
+    #elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
+        #if bin(height).count("1") != 1:
+        #    await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+        #    os.remove(file_path)
+        #    return
+        #if height < 4:
+        #    await message.channel.send('Please input a larger image.')
+        #    os.remove(file_path)
+        #    return 
+        #if bin(width).count("1") != 1:
+        #    await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+        #    os.remove(file_path)
+        #    return
+        #if width < 4:
+        #    await message.channel.send('Please input a larger image.')
+        #    os.remove(file_path)
+        #    return 
+        #file_format = 'png'
+    #else:
+        #await message.channel.send('Could not find a valid file to format.')
+        #os.remove(file_path)
+        #return
+
+    ###################################
 
     os.chdir(current_directory)
     
@@ -197,10 +216,15 @@ async def on_message(message):
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
 
+
+    ##########################################################################################################################################
+    ### since i have redone the console checking system, the lines below with "{file_url[-8:]}" needs to be fixed as it might cause issues ###
+    ##########################################################################################################################################
+
     elif file_format == 'xbox':
         await message.channel.send("Using superfreq")
         file_path = str(f"./{file_id}.png")
-        xbox_path = str(f"./{file_id}.{file_url[-8:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered.
+        xbox_path = str(f"./{file_id}.{file_url[-8:]}")
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
@@ -264,7 +288,7 @@ async def on_message(message):
     elif file_format == 'nx':
         await message.channel.send("Using forgetool")
         file_path = str(f"./{file_id}.png")
-        nx_path = str(f"./{file_id}.{file_url[-7:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered. # IKR! cba to add it honk shoo mimimi
+        nx_path = str(f"./{file_id}.{file_url[-7:]}")
 
         nx = requests.get(file_url, allow_redirects=True)
         with open(nx_path, "wb") as f:
