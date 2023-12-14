@@ -187,7 +187,7 @@ async def on_message(message):
             try:
                 os.remove(nx_path)
             except FileNotFoundError:
-                await message.channel.send("**.png_ps3 file not found.**")
+                await message.channel.send("**.png_nx file not found.**")
             return
         except Exception as error: 
             await message.channel.send(f"**An error occured. {error}**")
@@ -207,10 +207,11 @@ async def on_message(message):
             try:
                 os.remove(nx_path)
             except FileNotFoundError:
-                await message.channel.send("**.png_ps3 file not found.**")
+                await message.channel.send("**.png_nx file not found.**")
             return
         os.remove(ps3_path)
         os.remove(xbox_path)
+        os.remove(nx_path)
         os.remove(file_path) # Cleanup
 
 
