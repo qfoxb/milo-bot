@@ -291,7 +291,7 @@ async def on_message(message):
             if os.path.getsize(file_path) > 1:
                 await message.channel.send(file=discord.File(file_path))
             else:
-                await message.channel.send("**The processed file could not be found, forgetool most likely failed to process the image.**")
+                await message.channel.send("**Error: Forgetool failed to process the image.**")
         except FileNotFoundError:
             await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
             try:
