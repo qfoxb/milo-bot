@@ -109,7 +109,6 @@ async def on_message(message):
     #Initialize the mess
     FileExtensionValue = 0
     ipodBMP = 0
-    Non_HMXFile = 0
     file_extension = file_extension[79:] # get file name
 
     #This blob is where platforms are sorted for tex2png
@@ -127,27 +126,12 @@ async def on_message(message):
         print(f'Treating _pc as _xbox')  
         FileExtensionValue = file_extension.find('_pc')
         file_format = 'xbox'
-    else: #Below is for image2tex 
-        if file_extension.find('.png') or file_extension.find('.jpg') or file_extension.find('.jpeg') or file_extension.find('.webp')> -1:
-            Non_HMXFile = 1
-        else:    
-            await message.channel.send('Could not find a valid file to format.')
-            os.remove(file_path)
-            return
-
-    FileExtensionValue -= 3                              # This adds the png and bmp to the full file extension
-    file_extension = file_extension[FileExtensionValue:] # trim file name to file extension value
-    
-    # bmp_pc files dont work through superfreq 
-    if ipodBMP == 1:
         FileExtensionValue = file_extension.find('png')
         if FileExtensionValue == -1:
-             await message.channel.send("**bmp_pc is not supported by superfreq or ForgeTool.**")
-             return
-             
-    print(f'File extension is = "{file_extension}"')     # Print the file extension of the file for debugging, shows jpeg as "peg" and webp as "ebp" due to a bug i cba to fix
+            await message.channel.send("**bmp_pc is not supported by superfreq or ForgeTool.**")
+            return
 
-    if magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
+    elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
             os.remove(file_path)
