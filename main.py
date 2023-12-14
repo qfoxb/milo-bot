@@ -2,7 +2,7 @@
 # Written by femou, qfoxb and glitchgod
 # Copyright 2023
 
-version = "2.0 Beta "
+version = "2.0"
 
 # Setting up logging
 import logging
@@ -86,7 +86,7 @@ async def on_message(message):
     if len(message.attachments) == 0:
         return
     elif len(message.attachments) > 1:
-        message.channel.send("**I can only process 1 file at a time. The first file will be processed.**")
+        message.channel.send("**I can only process 1 file at a time. Only the first file will be processed.**")
 
 
     file_url = str(message.attachments[0].url)
@@ -108,7 +108,6 @@ async def on_message(message):
 
     #Initialize the mess
     FileExtensionValue = 0
-    ipodBMP = 0
     file_extension = file_extension[79:] # get file name
 
     #This blob is where platforms are sorted for tex2png
@@ -122,13 +121,13 @@ async def on_message(message):
         FileExtensionValue = file_extension.find('_nx')
         file_format = 'nx'
     elif file_extension.find('_pc') > -1:
-        ipodBMP = 1
         print(f'Treating _pc as _xbox')  
         FileExtensionValue = file_extension.find('_pc')
         file_format = 'xbox'
         FileExtensionValue = file_extension.find('png')
         if FileExtensionValue == -1:
-            await message.channel.send("**bmp_pc is not supported by superfreq or ForgeTool.**")
+            await message.channel.send("**This file isn't supposed by either tool.**")
+            os.remove(file_path)
             return
 
     elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
@@ -215,15 +214,10 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
 
-
-    ##########################################################################################################################################
-    ### since i have redone the console checking system, the lines below with "{file_url[-8:]}" needs to be fixed as it might cause issues ###
-    ##########################################################################################################################################
-
     elif file_format == 'xbox':
         # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
-        xbox_path = str(f"./{file_id}.{file_url[-8:]}")
+        xbox_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
@@ -255,7 +249,7 @@ async def on_message(message):
     elif file_format == 'ps3':
         # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
-        ps3_path = str(f"./{file_id}.{file_url[-7:]}")
+        ps3_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
@@ -287,7 +281,7 @@ async def on_message(message):
     elif file_format == 'nx':
         # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
-        nx_path = str(f"./{file_id}.{file_url[-7:]}")
+        nx_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
         nx = requests.get(file_url, allow_redirects=True)
         with open(nx_path, "wb") as f:
@@ -312,13 +306,14 @@ async def on_message(message):
             try:
                 os.remove(file_path)
             except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
+                await message.channel.send("**The processed file could not be found, forgetool most likely failed to process the image.**")
         os.remove(nx_path)
         os.remove(file_path) # Cleanup
 
 
     elif file_format == None:
         await message.channel.send('**An unexpected error happened with the file format.**')
+        os.remove(file_path)
         return
 
 client.run(TOKEN) 
