@@ -128,10 +128,15 @@ async def on_message(message):
             if FileExtensionValue == -1: 
                 FileExtensionValue = file_extension.find('_nx')
                 file_format = 'nx'
+                if FileExtensionValue == -1:
+                    await message.channel.send('Could not find a valid file to format.')
+                    os.remove(file_path)
+                    return
+
     
     FileExtensionValue -= 3                              # This adds the png and bmp to the full file extension
     file_extension = file_extension[FileExtensionValue:] # trim file name to file extension value
-    await message.channel.send(f'{file_extension}')      # Print the file extension of the file
+    print(f'File extension is = "{file_extension}"')      # Print the file extension of the file for debugging
 
 
     ###################################
@@ -222,7 +227,7 @@ async def on_message(message):
     ##########################################################################################################################################
 
     elif file_format == 'xbox':
-        await message.channel.send("Using superfreq")
+        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
         xbox_path = str(f"./{file_id}.{file_url[-8:]}")
 
@@ -254,7 +259,7 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
     elif file_format == 'ps3':
-        await message.channel.send("Using superfreq")
+        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
         ps3_path = str(f"./{file_id}.{file_url[-7:]}")
 
@@ -286,7 +291,7 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
     elif file_format == 'nx':
-        await message.channel.send("Using forgetool")
+        # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
         nx_path = str(f"./{file_id}.{file_url[-7:]}")
 
