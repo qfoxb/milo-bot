@@ -155,6 +155,7 @@ cython_debug/
 #mackiloha
 superfreq
 superfreq.exe
+ForgeTool.exe
 
 #milobot
 *.png

@@ -1,68 +1,75 @@
-# HarmBot written by femou and qfoxb and glitchgod (c) 2023
-version = "2.00"
-PingPhrase = "MiloBot written by femou, qfoxb and glitchgod\nRunning version -"
+# Milobot, the Milohax Art Conversion bot
+# Written by femou, qfoxb and glitchgod
+# Copyright 2023
 
-import os
+version = "2.0 Beta "
+
+# Setting up logging
+import logging
+import logging.handlers
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+logging.getLogger('discord.http').setLevel(logging.WARNING)
+handler = logging.handlers.RotatingFileHandler(
+    filename='discord.log',
+    encoding='utf-8',
+    maxBytes=32 * 1024 * 1024,  # 32 MiB
+    backupCount=1,
+)
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname}] {name}: {message}', dt_fmt, style='{')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Checking if we have the imports
 import subprocess
+import importlib
 packages = ["discord.py", "python-dotenv", "requests", "python-magic", "python-magic-bin"]
 
 for package in packages:
     try:
-        __import__(package)
+        importlib.import_module(package)
     except ImportError:
         subprocess.check_call(["pip", "install", package])
         
-
+# Importing the rest
 import discord
-import copy
+from discord.ext import commands
 from dotenv import load_dotenv
 import requests
 import random
 import asyncio
 import magic
+import os
+import copy
 
-async def update_check():
-    while True:
-        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/main/latest.version', allow_redirects=True)
-        with open("latest.version", "wb") as f:
-            f.write(latestver.content)
-            f.close()
-        await asyncio.sleep(10800) # 3 Hours
-#print("attemptingtoloadenv")
+# ENVs
 load_dotenv()
-#print("dotenv laoded")
 TOKEN = os.getenv("TOKEN")
-intents = discord.Intents.default()
-intents.message_content = True
-current_directory = os.path.dirname(os.path.abspath(__file__))
+BOT_CHANNEL = int(os.getenv("CHANNEL_ID"))
 
-# Arguments
-bot_channel = int(os.getenv("CHANNEL_ID"))
+# File Arguments
 quotes_file = 'status_quotes.txt'
 conversion_quotes_file = 'conversion_quotes.txt'
 superfreq = "superfreq"
-forgetool = "ForgeTool"
 swap_bytes = "convert.py"
+forgetool = "ForgeTool"
+
+# Path Arguments
+current_directory = os.path.dirname(os.path.abspath(__file__))
 superfreq_path = os.path.join(current_directory, superfreq)
 swap_bytes_path = os.path.join(current_directory, swap_bytes)
-# Hello Forge Tool
-forgetool_path = os.path.join(current_directory, forgetool)
-#
-
 quotes_path = os.path.join(current_directory, quotes_file)
 conversion_quotes_path = os.path.join(current_directory, conversion_quotes_file)
-client = discord.Client(intents=intents)
-async def status_task():
-    while True:
-        random_status = random.choice(open(quotes_path).readlines())
-        await client.change_presence(activity=discord.Game(name=random_status))
-        await asyncio.sleep(60)
+forgetool_path = os.path.join(current_directory, forgetool)
 
-@client.event
-async def on_ready():
-    print(f'Bot has logged in as {client.user}.')
-    client.loop.create_task(status_task())
-    client.loop.create_task(update_check())
+# Setting up discord
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 
 @client.event
 async def on_message(message):
@@ -70,28 +77,17 @@ async def on_message(message):
         return
     
     for mentions in message.mentions:
-        if "<@1184564938367320083>" in str(message.content): # So reply pings should be fixed by this
-            if mentions == client.user:
-                # Checking version
-                latestver = open('latest.version').read()
-                if version == latestver:
-                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-                elif version > latestver:
-                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
-                else:
-                    await message.channel.send(f'{PingPhrase} {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
-            else: return
+        if mentions == client.user:
+            await message.channel.send(f'milo (and forge) harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
 
-    if message.channel.id != bot_channel and message.guild:
+    if message.channel.id != BOT_CHANNEL and message.guild:
         return
-    
-    #if not message.guild:
-    #    print("Bot used in DMs")
     
     if len(message.attachments) == 0:
         return
-    if len(message.attachments) > 1:
-        await message.channel.send("**I can only process 1 file at a time!**")
+    elif len(message.attachments) > 1:
+        message.channel.send("**I can only process 1 file at a time. The first file will be processed.**")
+
 
     file_url = str(message.attachments[0].url)
     file_url = file_url.split('?')[0]
@@ -99,8 +95,6 @@ async def on_message(message):
     width = message.attachments[0].width
     file_extension = copy.deepcopy(file_url) # Copy File URL to get the extension later
 
-    #print(bin(height)+" "+bin(width)+" "+file_url[-4:])
-    
     file_format = None
 
     file_id = random.randrange(10000000000001)
@@ -112,74 +106,93 @@ async def on_message(message):
             f.write(file.content)
             f.close()
 
-    #print(magic.from_file(file_path, mime=True))
-
     #Initialize the mess
     FileExtensionValue = 0
     ipodBMP = 0
+    Non_HMXFile = 0
     file_extension = file_extension[79:] # get file name
 
     #This blob is where platforms are sorted
-    if FileExtensionValue == 0:
+    #if FileExtensionValue == 0:
+    #    FileExtensionValue = file_extension.find('_ps3')
+    #    print(f'{FileExtensionValue}')  
+    #    file_format = 'ps3'
+    #    if FileExtensionValue == -1: 
+    #        FileExtensionValue = file_extension.find('_xbox')
+    #        file_format = 'xbox'
+    #        if FileExtensionValue == -1: 
+    #            FileExtensionValue = file_extension.find('_pc')
+    #            ipodBMP = 1
+    #            print(f'Treating _pc as _xbox')  
+    #            file_format = 'xbox'
+    #            if FileExtensionValue == -1: 
+    #                FileExtensionValue = file_extension.find('_nx')
+    #                file_format = 'nx'
+    #                if FileExtensionValue == -1:
+    #                    await message.channel.send('Could not find a valid file to format.')
+    #                    os.remove(file_path)
+    #                    return
+
+    if file_extension.find('_ps3') > -1:
         FileExtensionValue = file_extension.find('_ps3')
         file_format = 'ps3'
-        if FileExtensionValue == -1: 
-            FileExtensionValue = file_extension.find('_xbox')
-            file_format = 'xbox'
-            if FileExtensionValue == -1: 
-                FileExtensionValue = file_extension.find('_pc')
-                ipodBMP = 1
-                print(f'Treating _pc as _xbox')  
-                file_format = 'xbox'
-                if FileExtensionValue == -1: 
-                    FileExtensionValue = file_extension.find('_nx')
-                    file_format = 'nx'
-                    if FileExtensionValue == -1:
-                        await message.channel.send('Could not find a valid file to format.')
-                        os.remove(file_path)
-                        return
+    elif file_extension.find('_xbox') > -1:
+        FileExtensionValue = file_extension.find('_xbox')
+        file_format = 'xbox'
+    elif file_extension.find('_nx') > -1:
+        FileExtensionValue = file_extension.find('_nx')
+        file_format = 'nx'
+    elif file_extension.find('_pc') > -1:
+        ipodBMP = 1
+        print(f'Treating _pc as _xbox')  
+        FileExtensionValue = file_extension.find('_pc')
+        file_format = 'xbox'
+    else:
+        if file_extension.find('.png') or file_extension.find('.jpg') or file_extension.find('.jpeg') or file_extension.find('.webp')> -1:
+            Non_HMXFile = 1
+        else:    
+            await message.channel.send('Could not find a valid file to format.')
+            os.remove(file_path)
+            return
 
-    
     FileExtensionValue -= 3                              # This adds the png and bmp to the full file extension
     file_extension = file_extension[FileExtensionValue:] # trim file name to file extension value
+    
+    # bmp_pc files dont work through superfreq 
     if ipodBMP == 1:
         FileExtensionValue = file_extension.find('png')
         if FileExtensionValue == -1:
-             await message.channel.send("**bmp_pc is not supported.**")
+             await message.channel.send("**bmp_pc is not supported by superfreq or ForgeTool.**")
              return
+             
     print(f'File extension is = "{file_extension}"')      # Print the file extension of the file for debugging
 
 
     ###################################
     ### FIX ME,FIX ME,FIX ME,FIX ME ###
     ###################################
-
-
-                                                                                                                           #syntax error here now   ↓↓↓↓
-    #elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
-        #if bin(height).count("1") != 1:
-        #    await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-        #    os.remove(file_path)
-        #    return
-        #if height < 4:
-        #    await message.channel.send('Please input a larger image.')
-        #    os.remove(file_path)
-        #    return 
-        #if bin(width).count("1") != 1:
-        #    await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
-        #    os.remove(file_path)
-        #    return
-        #if width < 4:
-        #    await message.channel.send('Please input a larger image.')
-        #    os.remove(file_path)
-        #    return 
-        #file_format = 'png'
+    if magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
+        if bin(height).count("1") != 1:
+            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            os.remove(file_path)
+            return
+        if height < 4:
+            await message.channel.send('Please input a larger image.')
+            os.remove(file_path)
+            return 
+        if bin(width).count("1") != 1:
+            await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
+            os.remove(file_path)
+            return
+        if width < 4:
+            await message.channel.send('Please input a larger image.')
+            os.remove(file_path)
+            return 
+        file_format = 'png'
     #else:
-        #await message.channel.send('Could not find a valid file to format.')
-        #os.remove(file_path)
-        #return
-
-    ###################################
+    #    await message.channel.send('Could not find a valid file to format.')
+    #    os.remove(file_path)
+    #    return
 
     os.chdir(current_directory)
     
@@ -206,11 +219,15 @@ async def on_message(message):
             try:
                 os.remove(xbox_path)
             except FileNotFoundError:
-                return
+                await message.channel.send("**.png_xbox file not found.**")
             try:
                 os.remove(ps3_path)
             except FileNotFoundError:
-                return
+                await message.channel.send("**.png_ps3 file not found.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_ps3 file not found.**")
             return
         except Exception as error: 
             await message.channel.send(f"**An error occured. {error}**")
@@ -227,10 +244,15 @@ async def on_message(message):
                 os.remove(ps3_path)
             except FileNotFoundError:
                 await message.channel.send("**.png_ps3 file not found.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_ps3 file not found.**")
             return
         os.remove(ps3_path)
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
+
 
 
     ##########################################################################################################################################
