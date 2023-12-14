@@ -116,6 +116,7 @@ async def on_message(message):
 
     #Initialize the mess
     FileExtensionValue = 0
+    ipodBMP = 0
     file_extension = file_extension[79:] # get file name
 
     #This blob is where platforms are sorted
@@ -126,16 +127,26 @@ async def on_message(message):
             FileExtensionValue = file_extension.find('_xbox')
             file_format = 'xbox'
             if FileExtensionValue == -1: 
-                FileExtensionValue = file_extension.find('_nx')
-                file_format = 'nx'
-                if FileExtensionValue == -1:
-                    await message.channel.send('Could not find a valid file to format.')
-                    os.remove(file_path)
-                    return
+                FileExtensionValue = file_extension.find('_pc')
+                ipodBMP = 1
+                print(f'Treating _pc as _xbox')  
+                file_format = 'xbox'
+                if FileExtensionValue == -1: 
+                    FileExtensionValue = file_extension.find('_nx')
+                    file_format = 'nx'
+                    if FileExtensionValue == -1:
+                        await message.channel.send('Could not find a valid file to format.')
+                        os.remove(file_path)
+                        return
 
     
     FileExtensionValue -= 3                              # This adds the png and bmp to the full file extension
     file_extension = file_extension[FileExtensionValue:] # trim file name to file extension value
+    if ipodBMP == 1:
+        FileExtensionValue = file_extension.find('png')
+        if FileExtensionValue == -1:
+             await message.channel.send("**bmp_pc is not supported.**")
+             return
     print(f'File extension is = "{file_extension}"')      # Print the file extension of the file for debugging
 
 
