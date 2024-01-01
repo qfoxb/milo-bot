@@ -155,12 +155,17 @@ cython_debug/
 #mackiloha
 superfreq
 superfreq.exe
+ForgeTool.exe
 
 #milobot
 *.png
 *.png_ps3
 *.png_xbox
+*.png_nx
 *.bmp_xbox
 *.bmp_ps3
+*.bmp_nx
+*.dll
 .vscode/
 env
+discord.log

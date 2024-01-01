@@ -1,99 +1,117 @@
-# MiloBot written by femou and qfoxb. (c) 2023
-version = "1.94"
+# Milobot, the Milohax Art Conversion bot
+# Written by femou, qfoxb and glitchgod
+# Copyright 2023
 
-import os
+version = "2.0"
+
+# Setting up logging
+import logging
+import logging.handlers
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.WARNING)
+logging.getLogger('discord.http').setLevel(logging.WARNING)
+handler = logging.handlers.RotatingFileHandler(
+    filename='discord.log',
+    encoding='utf-8',
+    maxBytes=32 * 1024 * 1024,  # 32 MiB
+    backupCount=1,
+)
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname}] {name}: {message}', dt_fmt, style='{')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Checking if we have the imports
 import subprocess
+import importlib
 packages = ["discord.py", "python-dotenv", "requests", "python-magic", "python-magic-bin"]
 
 for package in packages:
     try:
-        __import__(package)
+        importlib.import_module(package)
     except ImportError:
         subprocess.check_call(["pip", "install", package])
         
-
+# Importing the rest
 import discord
+from discord.ext import commands
 from dotenv import load_dotenv
 import requests
 import random
 import asyncio
 import magic
+import os
+import copy
+from glob import glob
+import sys
 
-async def update_check():
-    while True:
-        latestver = requests.get('https://github.com/qfoxb/mhx-bot/raw/main/latest.version', allow_redirects=True)
-        with open("latest.version", "wb") as f:
-            f.write(latestver.content)
-            f.close()
-        await asyncio.sleep(10800) # 3 Hours
-#print("attemptingtoloadenv")
+# ENVs
 load_dotenv()
-#print("dotenv laoded")
 TOKEN = os.getenv("TOKEN")
-intents = discord.Intents.default()
-intents.message_content = True
-current_directory = os.path.dirname(os.path.abspath(__file__))
+BOT_CHANNEL = int(os.getenv("CHANNEL_ID"))
 
-# Arguments
-bot_channel = int(os.getenv("CHANNEL_ID"))
+# File Arguments
 quotes_file = 'status_quotes.txt'
 conversion_quotes_file = 'conversion_quotes.txt'
 superfreq = "superfreq"
 swap_bytes = "convert.py"
+forgetool = "ForgeTool"
+
+# Path Arguments
+current_directory = os.path.dirname(os.path.abspath(__file__))
 superfreq_path = os.path.join(current_directory, superfreq)
 swap_bytes_path = os.path.join(current_directory, swap_bytes)
-
 quotes_path = os.path.join(current_directory, quotes_file)
 conversion_quotes_path = os.path.join(current_directory, conversion_quotes_file)
+forgetool_path = os.path.join(current_directory, forgetool)
+
+# Checking files
+
+if not glob('superfreq*'):
+    logging.critical("Superfreq not found! Exiting.")
+    sys.exit()
+if not glob('forgetool*'):
+    logging.critical("ForgeTool not found! Exiting.")
+    sys.exit()
+
+# Setting up discord
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
+intents = discord.Intents.default()
+intents.message_content = True
 client = discord.Client(intents=intents)
-async def status_task():
-    while True:
-        random_status = random.choice(open(quotes_path).readlines())
-        await client.change_presence(activity=discord.Game(name=random_status))
-        await asyncio.sleep(60)
 
 @client.event
 async def on_ready():
     print(f'Bot has logged in as {client.user}.')
-    client.loop.create_task(status_task())
-    client.loop.create_task(update_check())
 
 @client.event
 async def on_message(message):
     if message.author == client.user:  
         return
-    
-    for mentions in message.mentions:
-        if "<@1146938776568991804>" in str(message.content): # So reply pings should be fixed by this
-            if mentions == client.user:
-                # Checking version
-                latestver = open('latest.version').read()
-                if version == latestver:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-                elif version > latestver:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+'**Version is PRERELEASE**')
-                else:
-                    await message.channel.send(f'MiloBot written by femou and qfoxb\nRunning version {version}, '+'Ping: {0}ms\n'.format(round(client.latency * 1000, 1))+f'*An update is available! Latest version: {latestver}*')
-            else: return
-
-    if message.channel.id != bot_channel and message.guild:
+    if message.author.bot:
         return
     
-    #if not message.guild:
-    #    print("Bot used in DMs")
+    for mentions in message.mentions:
+        if mentions == client.user:
+            await message.channel.send(f'milo (and forge) harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+
+    if message.channel.id != BOT_CHANNEL and message.guild:
+        return
     
     if len(message.attachments) == 0:
         return
-    if len(message.attachments) > 1:
-        message.channel.send("**I can only process 1 file at a time!**")
+    elif len(message.attachments) > 1:
+        message.channel.send("**I can only process 1 file at a time. Only the first file will be processed.**")
+
 
     file_url = str(message.attachments[0].url)
     file_url = file_url.split('?')[0]
     height = message.attachments[0].height
     width = message.attachments[0].width
+    file_extension = file_url.rsplit('.', 1)[1] # Copy File URL to get the extension later
 
-    #print(bin(height)+" "+bin(width)+" "+file_url[-4:])
-    
     file_format = None
 
     file_id = random.randrange(10000000000001)
@@ -105,12 +123,30 @@ async def on_message(message):
             f.write(file.content)
             f.close()
 
-    #print(magic.from_file(file_path, mime=True))
+    #Initialize the mess
+    FileExtensionValue = 0
+    #file_extension = file_extension[79:] # get file name
 
-    if file_url[-9:] == '.png_xbox' or file_url[-9:] == '.bmp_xbox':
-        file_format = 'xbox'
-    elif file_url[-8:] == '.png_ps3' or file_url[-8:] == '.bmp_ps3':
+    #This blob is where platforms are sorted for tex2png
+    if file_extension.find('_ps3') > -1:
+        FileExtensionValue = file_extension.find('_ps3')
         file_format = 'ps3'
+    elif file_extension.find('_xbox') > -1:
+        FileExtensionValue = file_extension.find('_xbox')
+        file_format = 'xbox'
+    elif file_extension.find('_nx') > -1:
+        FileExtensionValue = file_extension.find('_nx')
+        file_format = 'nx'
+    elif file_extension.find('_pc') > -1:
+        print(f'Treating _pc as _xbox')  
+        FileExtensionValue = file_extension.find('_pc')
+        file_format = 'xbox'
+        FileExtensionValue = file_extension.find('png')
+        if FileExtensionValue == -1:
+            await message.channel.send("**This file isn't supposed by either tool.**")
+            os.remove(file_path)
+            return
+
     elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
@@ -159,11 +195,15 @@ async def on_message(message):
             try:
                 os.remove(xbox_path)
             except FileNotFoundError:
-                return
+                await message.channel.send("**.png_xbox file not found.**")
             try:
                 os.remove(ps3_path)
             except FileNotFoundError:
-                return
+                await message.channel.send("**.png_ps3 file not found.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_nx file not found.**")
             return
         except Exception as error: 
             await message.channel.send(f"**An error occured. {error}**")
@@ -180,15 +220,21 @@ async def on_message(message):
                 os.remove(ps3_path)
             except FileNotFoundError:
                 await message.channel.send("**.png_ps3 file not found.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**.png_nx file not found.**")
             return
         os.remove(ps3_path)
         os.remove(xbox_path)
+        os.remove(nx_path)
         os.remove(file_path) # Cleanup
 
+
     elif file_format == 'xbox':
+        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
-        
-        xbox_path = str(f"./{file_id}.{file_url[-8:]}") #Using file_url[-8:] is not a good idea if any other formatting gets added. Updating the method to get file format/name should be considered.
+        xbox_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
         xbox = requests.get(file_url, allow_redirects=True)
         with open(xbox_path, "wb") as f:
@@ -218,8 +264,9 @@ async def on_message(message):
         os.remove(file_path) # Cleanup
 
     elif file_format == 'ps3':
+        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
         file_path = str(f"./{file_id}.png")
-        ps3_path = str(f"./{file_id}.{file_url[-7:]}")
+        ps3_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
         ps3 = requests.get(file_url, allow_redirects=True)
         with open(ps3_path, "wb") as f:
@@ -248,8 +295,45 @@ async def on_message(message):
         os.remove(ps3_path)
         os.remove(file_path) # Cleanup
 
+    elif file_format == 'nx':
+        # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
+        file_path = str(f"./{file_id}.png")
+        nx_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+
+        nx = requests.get(file_url, allow_redirects=True)
+        with open(nx_path, "wb") as f:
+            f.write(nx.content)
+        try:
+            subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
+            if os.path.getsize(file_path) > 1:
+                await message.channel.send(file=discord.File(file_path))
+            else:
+                await message.channel.send("**Error: Forgetool failed to process the image.**")
+        except FileNotFoundError:
+            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+            return
+        except Exception as error: 
+            await message.channel.send(f"**An error occured.\n**{error}")
+            try:
+                os.remove(nx_path)
+            except FileNotFoundError:
+                await message.channel.send("**Could not find the original file while trying to delete it.**")
+                return
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                await message.channel.send("**The processed file could not be found, forgetool most likely failed to process the image.**")
+        os.remove(nx_path)
+        os.remove(file_path) # Cleanup
+
+
     elif file_format == None:
         await message.channel.send('**An unexpected error happened with the file format.**')
+        os.remove(file_path)
         return
 
 client.run(TOKEN) 
