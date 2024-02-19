@@ -137,6 +137,9 @@ async def on_message(message):
     elif file_extension.find('_nx') > -1:
         FileExtensionValue = file_extension.find('_nx')
         file_format = 'nx'
+    elif file_extension.find('_wii') > -1:
+        message.channel.send("Wii conversion is not supported!")
+        return
     elif file_extension.find('_pc') > -1:
         print(f'Treating _pc as _xbox')  
         FileExtensionValue = file_extension.find('_pc')
