@@ -87,8 +87,8 @@ async def on_message(message):
     if len(message.attachments) > 1:
         message.channel.send("**I can only process 1 file at a time!**")
 
-    file_url = str(message.attachments[0].url)
-    file_url = file_url.split('?')[0]
+    file_url_base = str(message.attachments[0].url)
+    file_url = file_url_base.split('?')[0]
     height = message.attachments[0].height
     width = message.attachments[0].width
 
@@ -100,7 +100,7 @@ async def on_message(message):
     file_url_format = file_url.rpartition('.')[-1]
     file_path = f"./{file_id}.{file_url_format}"
 
-    file = requests.get(file_url, allow_redirects=True)
+    file = requests.get(file_url_base, allow_redirects=True)
     with open(file_path, "wb") as f:
             f.write(file.content)
             f.close()
