@@ -28,17 +28,6 @@ logger.addHandler(handler)
 
 logging.info("Logging started!")
 
-# Checking if we have the imports
-import subprocess
-import importlib
-packages = ["discord.py", "python-dotenv", "requests", "python-magic", "python-magic-bin"]
-
-for package in packages:
-    try:
-        importlib.import_module(package)
-    except ImportError:
-        subprocess.check_call(["pip", "install", package])
-
 # Checking versions
 
 from packaging import version
@@ -59,6 +48,7 @@ elif version.parse(__version__) < version.parse(GitVersion.content.decode("utf-8
     logging.critical("An update is available. Please update to the latest version.")
         
 # Importing the rest
+import subprocess
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -130,7 +120,6 @@ async def on_message(message):
     elif len(message.attachments) > 1:
         message.channel.send("**I can only process 1 file at a time. Only the first file will be processed.**")
 
-
     file_url_base = str(message.attachments[0].url)
     file_url = file_url_base.split('?')[0]
     height = message.attachments[0].height
@@ -138,21 +127,19 @@ async def on_message(message):
     file_extension = file_url.rsplit('.', 1)[1] # Copy File URL to get the extension later
 
     file_format = None
-
     file_id = random.randrange(10000000000001)
     file_url_format = file_url.rpartition('.')[-1]
     file_path = f"./{file_id}.{file_url_format}"
+
+    FileExtensionValue = 0
+
+    # Extension sorting
 
     file = requests.get(file_url_base, allow_redirects=True)
     with open(file_path, "wb") as f:
             f.write(file.content)
             f.close()
 
-    #Initialize the mess
-    FileExtensionValue = 0
-    #file_extension = file_extension[79:] # get file name
-
-    #This blob is where platforms are sorted for tex2png
     if file_extension.find('_ps3') > -1:
         FileExtensionValue = file_extension.find('_ps3')
         file_format = 'ps3'
@@ -197,7 +184,7 @@ async def on_message(message):
         await message.channel.send('Could not find a valid file to format.')
         os.remove(file_path)
         return
-
+    
     os.chdir(current_directory)
     
     line = random.choice(open(conversion_quotes_path).readlines())
@@ -214,45 +201,9 @@ async def on_message(message):
             await message.channel.send(file=discord.File(xbox_path))
             await message.channel.send(file=discord.File(ps3_path))
         except FileNotFoundError:
-            await message.channel.send("**Error: One of the processed file could not be found, superfreq most likely failed to process the image.**")
-            try:
-                os.remove(file_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-                return # Under this scenario it's extremly likely that xbox and ps3 file were not created, so it's not worth checking and potentially clogging chat with errors.
-            try:
-                os.remove(xbox_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_xbox file not found.**")
-            try:
-                os.remove(ps3_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_ps3 file not found.**")
-            try:
-                os.remove(nx_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_nx file not found.**")
-            return
+            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
         except Exception as error: 
-            await message.channel.send(f"**An error occured. {error}**")
-            try:
-                os.remove(file_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-                return # See line 140
-            try:
-                os.remove(xbox_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_xbox file not found.**")
-            try:
-                os.remove(ps3_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_ps3 file not found.**")
-            try:
-                os.remove(nx_path)
-            except FileNotFoundError:
-                await message.channel.send("**.png_nx file not found.**")
-            return
+            await message.channel.send(f"An error occured. {error}")
         os.remove(ps3_path)
         os.remove(xbox_path)
         os.remove(nx_path)
@@ -271,23 +222,9 @@ async def on_message(message):
             subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
             await message.channel.send(file=discord.File(file_path))
         except FileNotFoundError:
-            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
-            try:
-                os.remove(xbox_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-            return
+            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
         except Exception as error: 
-            await message.channel.send(f"**An error occured.\n**{error}")
-            try:
-                os.remove(xbox_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-                return
-            try:
-                os.remove(file_path)
-            except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
+            await message.channel.send(f"An error occured. {error}")
         os.remove(xbox_path)
         os.remove(file_path) # Cleanup
 
@@ -303,23 +240,9 @@ async def on_message(message):
             subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
             await message.channel.send(file=discord.File(file_path))
         except FileNotFoundError:
-            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
-            try:
-                os.remove(ps3_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-            return
+            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
         except Exception as error: 
-            await message.channel.send(f"**An error occured.**\n{error}")
-            try:
-                os.remove(ps3_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-                return
-            try:
-                os.remove(file_path)
-            except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, superfreq most likely failed to process the image.**")
+            await message.channel.send(f"An error occured. {error}")
         os.remove(ps3_path)
         os.remove(file_path) # Cleanup
 
@@ -338,23 +261,9 @@ async def on_message(message):
             else:
                 await message.channel.send("**Error: Forgetool failed to process the image.**")
         except FileNotFoundError:
-            await message.channel.send("**Error: The processed file could not be found, superfreq most likely failed to process the image.**")
-            try:
-                os.remove(nx_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-            return
+            await message.channel.send("**FileNotFoundError: Forgetool failed to process image.**")
         except Exception as error: 
             await message.channel.send(f"**An error occured.\n**{error}")
-            try:
-                os.remove(nx_path)
-            except FileNotFoundError:
-                await message.channel.send("**Could not find the original file while trying to delete it.**")
-                return
-            try:
-                os.remove(file_path)
-            except FileNotFoundError:
-                await message.channel.send("**The processed file could not be found, forgetool most likely failed to process the image.**")
         os.remove(nx_path)
         os.remove(file_path) # Cleanup
 
