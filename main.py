@@ -53,10 +53,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import random
-import asyncio
 import magic
 import os
-import copy
 from glob import glob
 import sys
 import zipfile
