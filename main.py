@@ -236,7 +236,6 @@ async def on_message(message):
                 await message.channel.send(f"**An error occured. {error}**")
             os.remove(ps3_path)
             os.remove(xbox_path)
-            os.remove(nx_path)
             os.remove(file_path) # Cleanup
 
 
