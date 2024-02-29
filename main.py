@@ -138,9 +138,8 @@ async def on_message(message):
     if message.author.bot:
         return
     
-    for mentions in message.mentions:
-        if mentions == client.user:
-            await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+    if client.user.mention in message.content.split():
+        await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
 
     if message.channel.id != BOT_CHANNEL and message.guild:
         return
