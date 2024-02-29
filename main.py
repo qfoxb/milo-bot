@@ -191,86 +191,94 @@ async def on_message(message):
 
     await message.channel.send(f'{line}')
 
-    if file_format == 'png':
-        xbox_path = f"./{file_id}.png_xbox"
-        ps3_path = f"./{file_id}.png_ps3"
+    match file_format:
+        case "png":
+            xbox_path = f"./{file_id}.png_xbox"
+            ps3_path = f"./{file_id}.png_ps3"
 
-        try:
-            subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
-            subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
-            await message.channel.send(file=discord.File(xbox_path))
-            await message.channel.send(file=discord.File(ps3_path))
-        except FileNotFoundError:
-            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
-        except Exception as error: 
-            await message.channel.send(f"An error occured. {error}")
-        os.remove(ps3_path)
-        os.remove(xbox_path)
-        os.remove(nx_path)
-        os.remove(file_path) # Cleanup
+            try:
+                subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
+                subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
+                await message.channel.send(file=discord.File(xbox_path))
+                await message.channel.send(file=discord.File(ps3_path))
+            except FileNotFoundError:
+                await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+            except Exception as error: 
+                await message.channel.send(f"**An error occured. {error}**")
+            os.remove(ps3_path)
+            os.remove(xbox_path)
+            os.remove(nx_path)
+            os.remove(file_path) # Cleanup
 
 
-    elif file_format == 'xbox':
-        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
-        file_path = str(f"./{file_id}.png")
-        xbox_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+        case "xbox":
+            # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
+            file_path = str(f"./{file_id}.png")
+            xbox_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-        xbox = requests.get(file_url, allow_redirects=True)
-        with open(xbox_path, "wb") as f:
-            f.write(xbox.content)
-        try:
-            subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
-            await message.channel.send(file=discord.File(file_path))
-        except FileNotFoundError:
-            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
-        except Exception as error: 
-            await message.channel.send(f"An error occured. {error}")
-        os.remove(xbox_path)
-        os.remove(file_path) # Cleanup
-
-    elif file_format == 'ps3':
-        # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
-        file_path = str(f"./{file_id}.png")
-        ps3_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
-
-        ps3 = requests.get(file_url, allow_redirects=True)
-        with open(ps3_path, "wb") as f:
-            f.write(ps3.content)
-        try:
-            subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
-            await message.channel.send(file=discord.File(file_path))
-        except FileNotFoundError:
-            await message.channel.send("**FileNotFoundError: Superfreq failed to process image.**")
-        except Exception as error: 
-            await message.channel.send(f"An error occured. {error}")
-        os.remove(ps3_path)
-        os.remove(file_path) # Cleanup
-
-    elif file_format == 'nx':
-        # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
-        file_path = str(f"./{file_id}.png")
-        nx_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
-
-        nx = requests.get(file_url, allow_redirects=True)
-        with open(nx_path, "wb") as f:
-            f.write(nx.content)
-        try:
-            subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
-            if os.path.getsize(file_path) > 1:
+            xbox = requests.get(file_url, allow_redirects=True)
+            with open(xbox_path, "wb") as f:
+                f.write(xbox.content)
+            try:
+                subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
                 await message.channel.send(file=discord.File(file_path))
-            else:
-                await message.channel.send("**Error: Forgetool failed to process the image.**")
-        except FileNotFoundError:
-            await message.channel.send("**FileNotFoundError: Forgetool failed to process image.**")
-        except Exception as error: 
-            await message.channel.send(f"**An error occured.\n**{error}")
-        os.remove(nx_path)
-        os.remove(file_path) # Cleanup
+            except FileNotFoundError:
+                await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+            except Exception as error: 
+                await message.channel.send(f"**An error occured. {error}**")
+            os.remove(xbox_path)
+            os.remove(file_path) # Cleanup
 
+        case "ps3":
+            # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
+            file_path = str(f"./{file_id}.png")
+            ps3_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-    elif file_format == None:
-        await message.channel.send('**An unexpected error happened with the file format.**')
-        os.remove(file_path)
-        return
+            ps3 = requests.get(file_url, allow_redirects=True)
+            with open(ps3_path, "wb") as f:
+                f.write(ps3.content)
+            try:
+                subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
+                await message.channel.send(file=discord.File(file_path))
+            except FileNotFoundError:
+                await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+            except Exception as error: 
+                await message.channel.send(f"**An error occured.**\n{error}")
+            os.remove(ps3_path)
+            os.remove(file_path) # Cleanup
+
+        case "nx": 
+            # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
+            file_path = str(f"./{file_id}.png")
+            nx_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+
+            nx = requests.get(file_url, allow_redirects=True)
+            with open(nx_path, "wb") as f:
+                f.write(nx.content)
+            try:
+                subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
+                if os.path.getsize(file_path) > 1:
+                    await message.channel.send(file=discord.File(file_path))
+                else:
+                    await message.channel.send("**Error: Forgetool failed to process the image.**")
+            except FileNotFoundError:
+                await message.channel.send("**FileNotFoundError: Forgetool failed to process image**")
+                os.remove(nx_path)
+                os.remove(file_path)
+                return
+            except Exception as error: 
+                await message.channel.send(f"**An error occured.\n**{error}")
+                os.remove(nx_path)
+                os.remove(file_path)
+            os.remove(nx_path)
+            os.remove(file_path) # Cleanup
+
+        case _:
+            await message.channel.send('**An unexpected error happened with the file format.**')
+            os.remove(file_path)
+            os.remove(ps3_path)
+            os.remove(xbox_path)
+            os.remove(nx_path)
+            return
 
 client.run(TOKEN) 
