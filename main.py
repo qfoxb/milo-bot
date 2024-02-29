@@ -72,6 +72,10 @@ superfreq = "superfreq"
 swap_bytes = "convert.py"
 forgetool = "ForgeTool"
 supportedFormats = ["image/jpeg", "image/png", "image/webp"]
+if sys.platform.startswith("win"):
+    python = "python"
+else:
+    python = "python3"
 
 # Path Arguments
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -227,7 +231,7 @@ async def on_message(message):
 
             try:
                 subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
-                subprocess.run([f"python", swap_bytes_path, xbox_path, ps3_path])
+                subprocess.run([python, swap_bytes_path, xbox_path, ps3_path])
                 await message.channel.send(file=discord.File(xbox_path))
                 await message.channel.send(file=discord.File(ps3_path))
             except FileNotFoundError:
