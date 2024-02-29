@@ -73,6 +73,7 @@ conversion_quotes_file = 'conversion_quotes.txt'
 superfreq = "superfreq"
 swap_bytes = "convert.py"
 forgetool = "ForgeTool"
+supportedFormats = ["image/jpeg", "image/png", "image/webp"]
 
 # Path Arguments
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -177,19 +178,17 @@ async def on_message(message):
         FileExtensionValue = file_extension.find('_nx')
         file_format = 'nx'
     elif file_extension.find('_wii') > -1:
-        message.channel.send("Wii conversion is not supported!")
+        message.channel.send("**Wii conversion is not yet supported!**")
         return
     elif file_extension.find('_pc') > -1:
-        print(f'Treating _pc as _xbox')  
         FileExtensionValue = file_extension.find('_pc')
         file_format = 'xbox'
         FileExtensionValue = file_extension.find('png')
         if FileExtensionValue == -1:
-            await message.channel.send("**This file isn't supposed by either tool.**")
+            await message.channel.send("**This file is not supposed by either tool!**")
             os.remove(file_path)
             return
-
-    elif magic.from_file(file_path, mime=True) == "image/jpeg" or magic.from_file(file_path, mime=True) == "image/png" or magic.from_file(file_path, mime=True) == "image/webp":
+    elif magic.from_file(file_path, mime=True) in supportedFormats:
         if bin(height).count("1") != 1:
             await message.channel.send('Invalid image size, the height and width must be a power of 2 (256, 512, etc.)')
             os.remove(file_path)
@@ -208,7 +207,9 @@ async def on_message(message):
             return 
         file_format = 'png'
     else:
-        await message.channel.send('Could not find a valid file to format.')
+        await message.channel.send('Could not find a valid file format. Debug: ' + file_extension + " " + file_url)
+        os.remove(file_path)
+        return
 
     if file_format == 'nx' and isForgeEnabled == False:
         await message.channel.send("Unable to process file: Forgetool is missing.")
