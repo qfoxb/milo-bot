@@ -14,13 +14,19 @@ logging.getLogger('discord.http').setLevel(logging.WARNING)
 handler = logging.handlers.RotatingFileHandler(
     filename='discord.log',
     encoding='utf-8',
-    maxBytes=32 * 1024 * 1024,  # 32 MiB
+    maxBytes=32 * 1024 * 1024,
     backupCount=1,
-)
+    )
 dt_fmt = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter('[{asctime}] [{levelname}] {name}: {message}', dt_fmt, style='{')
+formatter = logging.Formatter(
+    '[{asctime}] [{levelname}] {name}: {message}',
+    dt_fmt,
+    style='{'
+    )
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+logging.info("Logging started!")
 
 # Checking if we have the imports
 import subprocess
