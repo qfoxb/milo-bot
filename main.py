@@ -52,7 +52,6 @@ import subprocess
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import requests
 import random
 import asyncio
 import magic
@@ -60,6 +59,8 @@ import os
 import copy
 from glob import glob
 import sys
+import zipfile
+import shutil
 
 # ENVs
 load_dotenv()
@@ -84,11 +85,37 @@ forgetool_path = os.path.join(current_directory, forgetool)
 # Checking files
 
 if not glob('superfreq*'):
-    logging.critical("Superfreq not found! Exiting.")
-    sys.exit()
+    if sys.platform.startswith('win'):
+        logging.warning("Superfreq not found. Downloading Mackiloha.")
+
+        Mackiloha = requests.get(
+        'https://github.com/PikminGuts92/Mackiloha/releases/download/v1.2.0/Mackiloha_v1.2.0-win-x64.zip',
+        allow_redirects=True
+        )
+        Mackiloha.filepath = os.path.join(current_directory, "mackiloha.zip")
+        Mackiloha.folderpath = os.path.join(current_directory, "mackiloha")
+        superfreq_folderpath = os.path.join(Mackiloha.folderpath, superfreq)
+        with open(Mackiloha.filepath,"wb") as f:
+            f.write(Mackiloha.content)
+            f.close()
+
+        with zipfile.ZipFile(Mackiloha.filepath, "r") as zip:
+            zip.extractall(Mackiloha.folderpath)
+
+        os.rename(superfreq_folderpath, superfreq_path)
+        shutil.rmtree(Mackiloha.folderpath)
+        os.remove(Mackiloha.filepath)
+        logging.warning("Superfreq installed.")
+    else:
+        logging.critical("Superfreq not found. Please download at https://github.com/PikminGuts92/Mackiloha/releases/")
+        logging.critical("Exiting.")
+        sys.exit()
+
 if not glob('forgetool*'):
-    logging.critical("ForgeTool not found! Exiting.")
-    sys.exit()
+    logging.critical("ForgeTool not found! Forge support will be disabled.")
+    isForgeEnabled = False
+else:
+    isForgeEnabled = True
 
 # Setting up discord
 load_dotenv()
@@ -182,6 +209,9 @@ async def on_message(message):
         file_format = 'png'
     else:
         await message.channel.send('Could not find a valid file to format.')
+
+    if file_format == 'nx' and isForgeEnabled == False:
+        await message.channel.send("Unable to process file: Forgetool is missing.")
         os.remove(file_path)
         return
     
