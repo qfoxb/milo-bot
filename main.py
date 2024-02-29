@@ -2,7 +2,7 @@
 # Written by femou, qfoxb and glitchgod
 # Copyright 2023
 
-version = "2.0"
+__version__ = "2.0"
 
 # Setting up logging
 import logging
@@ -32,6 +32,25 @@ for package in packages:
         importlib.import_module(package)
     except ImportError:
         subprocess.check_call(["pip", "install", package])
+
+# Checking versions
+
+from packaging import version
+import requests
+
+GitVersion = requests.get(
+    'https://github.com/qfoxb/mhx-bot/raw/main/latest.version',
+    allow_redirects=True
+    )
+
+if version.parse(__version__) > version.parse(GitVersion.content.decode("utf-8")):
+    logging.warning("Beta version. Things may be unstable.")
+
+elif version.parse(__version__) == version.parse(GitVersion.content.decode("utf-8")):
+    logging.info("Running latest.")
+    
+elif version.parse(__version__) < version.parse(GitVersion.content.decode("utf-8")):
+    logging.critical("An update is available. Please update to the latest version.")
         
 # Importing the rest
 import discord
@@ -95,7 +114,7 @@ async def on_message(message):
     
     for mentions in message.mentions:
         if mentions == client.user:
-            await message.channel.send(f'milo (and forge) harmonix. Running version {version}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+            await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
 
     if message.channel.id != BOT_CHANNEL and message.guild:
         return
