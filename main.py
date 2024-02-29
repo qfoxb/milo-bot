@@ -157,10 +157,10 @@ async def on_message(message):
     file_url_format = file_url.rpartition('.')[-1]
     file_path = f"./{file_id}.{file_url_format}"
 
-    FileExtensionValue = 0
-
     # Extension sorting
 
+    FileExtensionValue = 0
+    
     file = requests.get(file_url_base, allow_redirects=True)
     with open(file_path, "wb") as f:
             f.write(file.content)
