@@ -4,29 +4,32 @@
 
 __version__ = "2.0"
 
+
+# ENVs
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
+BOT_CHANNEL = int(os.getenv("CHANNEL_ID"))
+LOG_LEVEL = os.getenv("LOG_LEVEL")
+
 # Setting up logging
 import logging
 import logging.handlers
+from colorlog import ColoredFormatter
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.WARNING)
-logging.getLogger('discord.http').setLevel(logging.WARNING)
-handler = logging.handlers.RotatingFileHandler(
-    filename='discord.log',
-    encoding='utf-8',
-    maxBytes=32 * 1024 * 1024,
-    backupCount=1,
-    )
-dt_fmt = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter(
-    '[{asctime}] [{levelname}] {name}: {message}',
-    dt_fmt,
-    style='{'
-    )
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logformat = "  %(log_color)s%(levelname)-8s%(reset)s | %(log_color)s%(message)s%(reset)s"
+logging.root.setLevel(LOG_LEVEL)
+formatter = ColoredFormatter(logformat)
+stream = logging.StreamHandler()
+stream.setLevel(LOG_LEVEL)
+stream.setFormatter(formatter)
+log = logging.getLogger('discord')
+log.setLevel(LOG_LEVEL)
+log.addHandler(stream)
 
-logging.info("Logging started!")
+log.info("Logging started!")
 
 # Checking versions
 
@@ -39,31 +42,24 @@ GitVersion = requests.get(
     )
 
 if version.parse(__version__) > version.parse(GitVersion.content.decode("utf-8")):
-    logging.warning("Beta version. Things may be unstable.")
+    log.warning("Beta version. Things may be unstable.")
 
 elif version.parse(__version__) == version.parse(GitVersion.content.decode("utf-8")):
-    logging.info("Running latest.")
+    log.info("Running latest.")
     
 elif version.parse(__version__) < version.parse(GitVersion.content.decode("utf-8")):
-    logging.critical("An update is available. Please update to the latest version.")
+    log.critical("An update is available. Please update to the latest version.")
         
 # Importing the rest
 import subprocess
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 import random
 import magic
-import os
 from glob import glob
 import sys
 import zipfile
 import shutil
-
-# ENVs
-load_dotenv()
-TOKEN = os.getenv("TOKEN")
-BOT_CHANNEL = int(os.getenv("CHANNEL_ID"))
 
 # File Arguments
 quotes_file = 'status_quotes.txt'
@@ -89,7 +85,7 @@ forgetool_path = os.path.join(current_directory, forgetool)
 
 if not glob('superfreq*'):
     if sys.platform.startswith('win'):
-        logging.warning("Superfreq not found. Downloading Mackiloha.")
+        log.warning("Superfreq not found. Downloading Mackiloha.")
 
         Mackiloha = requests.get(
         'https://github.com/PikminGuts92/Mackiloha/releases/download/v1.2.0/Mackiloha_v1.2.0-win-x64.zip',
@@ -108,17 +104,36 @@ if not glob('superfreq*'):
         os.rename(superfreq_folderpath, superfreq_path)
         shutil.rmtree(Mackiloha.folderpath)
         os.remove(Mackiloha.filepath)
-        logging.warning("Superfreq installed.")
+        log.warning("Superfreq installed.")
     else:
-        logging.critical("Superfreq not found. Please download at https://github.com/PikminGuts92/Mackiloha/releases/")
-        logging.critical("Exiting.")
+        log.critical("Superfreq not found. Please download at https://github.com/PikminGuts92/Mackiloha/releases/")
+        log.critical("Exiting.")
         sys.exit()
 
 if not glob('forgetool*'):
-    logging.critical("ForgeTool not found! Forge support will be disabled.")
+    log.critical("ForgeTool not found! Forge support will be disabled.")
     isForgeEnabled = False
 else:
-    isForgeEnabled = True
+    forgeFileList = []
+    if not glob('LibForge*'):
+        forgeFileMissing = True
+        forgeFileList.append("LibForge")
+    if not glob('MidiCS*'):
+        forgeFileMissing = True
+        forgeFileList.append("MidiCS")
+    if not glob('DtxCS*'):
+        forgeFileMissing = True
+        forgeFileList.append("DtxCS")
+    if not glob('GameArchives*'):
+        forgeFileMissing = True
+        forgeFileList.append("GameArchives")
+    if forgeFileMissing:
+        log.critical("ForgeTool is missing these critical files: "+str(forgeFileList).translate({ord(i): None for i in "'[]"}))
+        log.critical("Please add these files in the program's directory. ForgeTool support will be disabled.")
+        isForgeEnabled = False
+    else:
+        isForgeEnabled = True
+    
 
 # Setting up discord
 load_dotenv()
@@ -179,8 +194,8 @@ async def on_message(message):
         FileExtensionValue = file_extension.find('_nx')
         file_format = 'nx'
     elif file_extension.find('_wii') > -1:
-        message.channel.send("**Wii conversion is not yet supported!**")
-        return
+        FileExtensionValue = file_extension.find('_nx')
+        file_format = 'wii'
     elif file_extension.find('_pc') > -1:
         FileExtensionValue = file_extension.find('_pc')
         file_format = 'xbox'
@@ -304,12 +319,30 @@ async def on_message(message):
             os.remove(nx_path)
             os.remove(file_path) # Cleanup
 
+        case "wii":
+            file_path = str(f"./{file_id}.png")
+            wii_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+
+            wii = requests.get(file_url, allow_redirects=True)
+            with open(wii_path, "wb") as f:
+                f.write(wii.content)
+            try:
+                subprocess.run([superfreq_path, "tex2png", wii_path, file_path, "--platform", "wii", "--miloVersion", "26"])
+                await message.channel.send(file=discord.File(file_path))
+            except FileNotFoundError:
+                await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+            except Exception as error: 
+                await message.channel.send(f"**An error occured.**\n{error}")
+            os.remove(wii_path)
+            os.remove(file_path) # Cleanup
+
         case _:
             await message.channel.send('**An unexpected error happened with the file format.**')
             os.remove(file_path)
             os.remove(ps3_path)
             os.remove(xbox_path)
             os.remove(nx_path)
+            os.remove(wii_path)
             return
 
 client.run(TOKEN) 
