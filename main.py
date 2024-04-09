@@ -32,7 +32,6 @@ log.addHandler(stream)
 log.info("Logging started!")
 
 # Checking versions
-
 from packaging import version
 import requests
 
@@ -87,10 +86,14 @@ if not glob('superfreq*'):
     if sys.platform.startswith('win'):
         log.warning("Superfreq not found. Downloading Mackiloha.")
 
-        Mackiloha = requests.get(
-        'https://github.com/PikminGuts92/Mackiloha/releases/download/v1.2.0/Mackiloha_v1.2.0-win-x64.zip',
-        allow_redirects=True
-        )
+        try:
+            Mackiloha = requests.get(
+            'https://github.com/PikminGuts92/Mackiloha/releases/download/v1.2.0/Mackiloha_v1.2.0-win-x64.zip',
+            allow_redirects=True
+            )
+        except Exception:
+            log.critical("Failed to download superfreq. Exiting.")
+            sys.exit()
         Mackiloha.filepath = os.path.join(current_directory, "mackiloha.zip")
         Mackiloha.folderpath = os.path.join(current_directory, "mackiloha")
         superfreq_folderpath = os.path.join(Mackiloha.folderpath, superfreq)
