@@ -170,3 +170,4 @@ ForgeTool.exe
 env
 discord.log
 temp
+tmp/

@@ -96,14 +96,14 @@ if not glob('superfreq*'):
             sys.exit()
         Mackiloha.filepath = os.path.join(current_directory, "mackiloha.zip")
         Mackiloha.folderpath = os.path.join(current_directory, "mackiloha")
-        superfreq_folderpath = os.path.join(Mackiloha.folderpath, superfreq)
+        print(Mackiloha.folderpath+"\\superfreq*")
         with open(Mackiloha.filepath,"wb") as f:
             f.write(Mackiloha.content)
             f.close()
 
         with zipfile.ZipFile(Mackiloha.filepath, "r") as zip:
             zip.extractall(Mackiloha.folderpath)
-
+        superfreq_folderpath = glob(Mackiloha.folderpath+"\\superfreq*")[0]
         os.rename(superfreq_folderpath, superfreq_path)
         shutil.rmtree(Mackiloha.folderpath)
         os.remove(Mackiloha.filepath)
@@ -136,7 +136,14 @@ else:
         isForgeEnabled = False
     else:
         isForgeEnabled = True
-    
+
+if not glob('tmp/'):
+    os.mkdir("tmp/")
+    log.info("Created temporary directory.")
+else:
+    for file in glob("tmp/*"):
+        os.remove(file)
+    log.info("Removed temporary files from previous run.")
 
 # Setting up discord
 load_dotenv()
@@ -147,7 +154,7 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
-    print(f'Bot has logged in as {client.user}.')
+    log.info(f'Bot has logged in as {client.user}.')
 
 @client.event
 async def on_message(message):
@@ -176,7 +183,7 @@ async def on_message(message):
     file_format = None
     file_id = random.randrange(10000000000001)
     file_url_format = file_url.rpartition('.')[-1]
-    file_path = f"./{file_id}.{file_url_format}"
+    file_path = f"tmp/{file_id}.{file_url_format}"
 
     # Extension sorting
 
@@ -243,109 +250,142 @@ async def on_message(message):
 
     match file_format:
         case "png":
-            xbox_path = f"./{file_id}.png_xbox"
-            ps3_path = f"./{file_id}.png_ps3"
+            xbox_path = f"tmp/{file_id}.png_xbox"
+            wii_path = f"tmp/{file_id}.png_wii"
+            ps3_path = f"tmp/{file_id}.png_ps3"
 
             try:
-                subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"])
+                superfreq_result1 = subprocess.run([superfreq_path, "png2tex", file_path, xbox_path, "--platform", "x360", "--miloVersion", "26"], stderr=subprocess.PIPE)
+                superfreq_result2 = subprocess.run([superfreq_path, "png2tex", file_path, wii_path, "--platform", "wii", "--miloVersion", "26"], stderr=subprocess.PIPE)
                 subprocess.run([python, swap_bytes_path, xbox_path, ps3_path])
                 await message.channel.send(file=discord.File(xbox_path))
                 await message.channel.send(file=discord.File(ps3_path))
+                await message.channel.send(file=discord.File(wii_path))
             except FileNotFoundError:
                 await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
+                log.warning(superfreq_result2.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result2.stderr.decode("utf-8")+"\n```")
             except Exception as error: 
                 await message.channel.send(f"**An error occured. {error}**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
+                log.warning(superfreq_result2.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result2.stderr.decode("utf-8")+"\n```")
             os.remove(ps3_path)
             os.remove(xbox_path)
+            os.remove(wii_path)
             os.remove(file_path) # Cleanup
+            return
 
 
         case "xbox":
             # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
-            file_path = str(f"./{file_id}.png")
-            xbox_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+            file_path = str(f"tmp/{file_id}.png")
+            xbox_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
             xbox = requests.get(file_url, allow_redirects=True)
             with open(xbox_path, "wb") as f:
                 f.write(xbox.content)
             try:
-                subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"])
+                superfreq_result1 = subprocess.run([superfreq_path, "tex2png", xbox_path, file_path, "--platform", "x360", "--miloVersion", "26"], stderr=subprocess.PIPE)
                 await message.channel.send(file=discord.File(file_path))
             except FileNotFoundError:
                 await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             except Exception as error: 
                 await message.channel.send(f"**An error occured. {error}**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             os.remove(xbox_path)
             os.remove(file_path) # Cleanup
+            return
 
         case "ps3":
             # await message.channel.send("Using superfreq") # Redo this soon when a toggle is made for forge and milo
-            file_path = str(f"./{file_id}.png")
-            ps3_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+            file_path = str(f"tmp/{file_id}.png")
+            ps3_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
             ps3 = requests.get(file_url, allow_redirects=True)
             with open(ps3_path, "wb") as f:
                 f.write(ps3.content)
             try:
-                subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"])
+                superfreq_result1 = subprocess.run([superfreq_path, "tex2png", ps3_path, file_path, "--platform", "ps3", "--miloVersion", "26"], stderr=subprocess.PIPE)
                 await message.channel.send(file=discord.File(file_path))
             except FileNotFoundError:
                 await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             except Exception as error: 
                 await message.channel.send(f"**An error occured.**\n{error}")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             os.remove(ps3_path)
             os.remove(file_path) # Cleanup
+            return
 
-        case "nx": 
+        case "nx":
             # await message.channel.send("Using forgetool") # Redo this soon when a toggle is made for forge and milo
-            file_path = str(f"./{file_id}.png")
-            nx_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+            file_path = str(f"tmp/{file_id}.png")
+            nx_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
             nx = requests.get(file_url, allow_redirects=True)
             with open(nx_path, "wb") as f:
                 f.write(nx.content)
             try:
-                subprocess.run([forgetool_path, "tex2png", nx_path, file_path])
+                forgetool_result1 = subprocess.run([forgetool_path, "tex2png", nx_path, file_path], stderr=subprocess.PIPE)
                 if os.path.getsize(file_path) > 1:
                     await message.channel.send(file=discord.File(file_path))
                 else:
                     await message.channel.send("**Error: Forgetool failed to process the image.**")
+                    log.warning(forgetool_result1.stderr.decode("utf-8"))
+                    await message.channel.send("```\n"+forgetool_result1.stderr.decode("utf-8")+"\n```")
             except FileNotFoundError:
                 await message.channel.send("**FileNotFoundError: Forgetool failed to process image**")
+                log.warning(forgetool_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+forgetool_result1.stderr.decode("utf-8")+"\n```")
                 os.remove(nx_path)
                 os.remove(file_path)
                 return
             except Exception as error: 
+                log.warning(forgetool_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+forgetool_result1.stderr.decode("utf-8")+"\n```")
                 await message.channel.send(f"**An error occured.\n**{error}")
                 os.remove(nx_path)
                 os.remove(file_path)
             os.remove(nx_path)
             os.remove(file_path) # Cleanup
+            return
 
         case "wii":
-            file_path = str(f"./{file_id}.png")
-            wii_path = str(f"./{file_id}.{file_url.rsplit('.', 1)[1]}")
+            file_path = str(f"tmp/{file_id}.png")
+            wii_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
             wii = requests.get(file_url, allow_redirects=True)
             with open(wii_path, "wb") as f:
                 f.write(wii.content)
             try:
-                subprocess.run([superfreq_path, "tex2png", wii_path, file_path, "--platform", "wii", "--miloVersion", "26"])
+                superfreq_result1 = subprocess.run([superfreq_path, "tex2png", wii_path, file_path, "--platform", "wii", "--miloVersion", "26"], stderr=subprocess.PIPE)
                 await message.channel.send(file=discord.File(file_path))
             except FileNotFoundError:
                 await message.channel.send("**FileNotFoundError: Superfreq failed to process image**")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             except Exception as error: 
                 await message.channel.send(f"**An error occured.**\n{error}")
+                log.warning(superfreq_result1.stderr.decode("utf-8"))
+                await message.channel.send("```\n"+superfreq_result1.stderr.decode("utf-8")+"\n```")
             os.remove(wii_path)
             os.remove(file_path) # Cleanup
+            return
 
         case _:
             await message.channel.send('**An unexpected error happened with the file format.**')
-            os.remove(file_path)
-            os.remove(ps3_path)
-            os.remove(xbox_path)
-            os.remove(nx_path)
-            os.remove(wii_path)
+            log.critical(f"Script somehow failed to process the right file format for fileid {file_id} or the format was not properly implemented yet.")
+            for file in glob("tmp/*"):
+                os.remove(file)
             return
 
-client.run(TOKEN) 
+client.run(TOKEN, log_handler=None) 
