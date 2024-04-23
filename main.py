@@ -118,6 +118,7 @@ if not glob('forgetool*'):
     isForgeEnabled = False
 else:
     forgeFileList = []
+    forgeFileMissing = False
     if not glob('LibForge*'):
         forgeFileMissing = True
         forgeFileList.append("LibForge")
