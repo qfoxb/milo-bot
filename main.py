@@ -286,7 +286,7 @@ async def on_message(message):
             file_path = str(f"tmp/{file_id}.png")
             xbox_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-            xbox = requests.get(file_url, allow_redirects=True)
+            xbox = requests.get(file_url_base, allow_redirects=True)
             with open(xbox_path, "wb") as f:
                 f.write(xbox.content)
             try:
@@ -309,7 +309,7 @@ async def on_message(message):
             file_path = str(f"tmp/{file_id}.png")
             ps3_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-            ps3 = requests.get(file_url, allow_redirects=True)
+            ps3 = requests.get(file_url_base, allow_redirects=True)
             with open(ps3_path, "wb") as f:
                 f.write(ps3.content)
             try:
@@ -332,7 +332,7 @@ async def on_message(message):
             file_path = str(f"tmp/{file_id}.png")
             nx_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-            nx = requests.get(file_url, allow_redirects=True)
+            nx = requests.get(file_url_base, allow_redirects=True)
             with open(nx_path, "wb") as f:
                 f.write(nx.content)
             try:
@@ -364,7 +364,7 @@ async def on_message(message):
             file_path = str(f"tmp/{file_id}.png")
             wii_path = str(f"tmp/{file_id}.{file_url.rsplit('.', 1)[1]}")
 
-            wii = requests.get(file_url, allow_redirects=True)
+            wii = requests.get(file_url_base, allow_redirects=True)
             with open(wii_path, "wb") as f:
                 f.write(wii.content)
             try:
