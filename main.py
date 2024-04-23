@@ -65,7 +65,7 @@ quotes_file = 'status_quotes.txt'
 conversion_quotes_file = 'conversion_quotes.txt'
 superfreq = "superfreq"
 swap_bytes = "convert.py"
-forgetool = "ForgeTool"
+forgetool = "ForgeTool.exe"
 supportedFormats = ["image/jpeg", "image/png", "image/webp"]
 if sys.platform.startswith("win"):
     python = "python"
