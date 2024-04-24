@@ -32,6 +32,7 @@ log.addHandler(stream)
 log.info("Logging started!")
 
 # Checking versions
+beta = "false" # set beta to False -  will be overwritten if it is actually beta
 from packaging import version
 import requests
 
@@ -42,6 +43,7 @@ GitVersion = requests.get(
 
 if version.parse(__version__) > version.parse(GitVersion.content.decode("utf-8")):
     log.warning("Beta version. Things may be unstable.")
+    beta = "true"
 
 elif version.parse(__version__) == version.parse(GitVersion.content.decode("utf-8")):
     log.info("Running latest.")
@@ -57,6 +59,7 @@ import random
 import magic
 from glob import glob
 import sys
+import asyncio
 import zipfile
 import shutil
 
@@ -153,9 +156,17 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+async def status_task():
+    while True:
+        random_status = random.choice(open(quotes_path).readlines())
+        await client.change_presence(activity=discord.Game(name=random_status))
+        await asyncio.sleep(60)
+
+
 @client.event
 async def on_ready():
     log.info(f'Bot has logged in as {client.user}.')
+    client.loop.create_task(status_task()) 
 
 @client.event
 async def on_message(message):
