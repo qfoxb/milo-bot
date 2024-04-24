@@ -37,7 +37,7 @@ Can't make BU..
 Rock Band 3 Deluxe 1.0 <:EZ:961456816863199232>
 Hacking my way into the Harmonix FTP server..
 Sending "ratio" to the DMCA email from Harmonix..
-Removing support for Wii..
+Readding support for Wii..
 Deleting System32..
 Decompiling RB3..
 Crashing your system with the ark limit..
@@ -45,5 +45,5 @@ It works fine for me on RPCS3..
 Rule 6.
 Rock Band 4 if it was good..
 `AD DE AD DE`
-1% Decomp!!!
 Rock Band 5 is real.
+Leaking another debug build..
