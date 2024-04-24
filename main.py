@@ -2,7 +2,7 @@
 # Written by femou, qfoxb and glitchgod
 # Copyright 2023
 
-__version__ = "2.0"
+__version__ = "2.1"
 
 
 # ENVs
@@ -36,7 +36,7 @@ from packaging import version
 import requests
 
 GitVersion = requests.get(
-    'https://github.com/qfoxb/mhx-bot/raw/main/latest.version',
+    'https://github.com/qfoxb/milo-bot/raw/main/latest.version',
     allow_redirects=True
     )
 
@@ -246,7 +246,14 @@ async def on_message(message):
     os.chdir(current_directory)
     
     line = random.choice(open(conversion_quotes_path).readlines())
-
+    if os.path.isfile("totalconversions.txt"):
+        with open("totalconversions.txt", "r") as f:
+            totalconversions = int(f.read())
+        with open("totalconversions.txt", "w") as f:
+            f.write(str(totalconversions+1))
+    else:
+        with open("totalconversions.txt", "w") as f:
+            f.write("1")
     await message.channel.send(f'{line}')
 
     match file_format:
