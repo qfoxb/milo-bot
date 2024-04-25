@@ -23,7 +23,6 @@ I swear if this is a Kimbey Comm Highway..
 Access violation reading location 0x8. ||(joking)||
 Invalid read from 0x3133203a, PC = 0x8046d178. Only Emma knows what this means.
 Error: Package "dotnet" not found... Oh nvm it's right there!
-No, you can't use custom textures on Wii.
 Loading the entire Shrek 2 movie into memory..
 Escaping the Docker container..
 Cooking something up..
@@ -46,5 +45,6 @@ Rock Band 4 if it was good..
 `AD DE AD DE`
 Rock Band 5 is real.
 Leaking another debug build..
+! BAD THING HAPPENING !
 Hold on I'm cooking..
 Feeding dave more ram..

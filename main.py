@@ -2,7 +2,7 @@
 # Written by femou, qfoxb and glitchgod
 # Copyright 2023
 
-__version__ = "2.0"
+__version__ = "2.1"
 
 
 # ENVs
@@ -32,16 +32,18 @@ log.addHandler(stream)
 log.info("Logging started!")
 
 # Checking versions
+beta = "false" # set beta to False -  will be overwritten if it is actually beta
 from packaging import version
 import requests
 
 GitVersion = requests.get(
-    'https://github.com/qfoxb/mhx-bot/raw/main/latest.version',
+    'https://github.com/qfoxb/milo-bot/raw/main/latest.version',
     allow_redirects=True
     )
 
 if version.parse(__version__) > version.parse(GitVersion.content.decode("utf-8")):
     log.warning("Beta version. Things may be unstable.")
+    beta = "true"
 
 elif version.parse(__version__) == version.parse(GitVersion.content.decode("utf-8")):
     log.info("Running latest.")
@@ -57,6 +59,7 @@ import random
 import magic
 from glob import glob
 import sys
+import asyncio
 import zipfile
 import shutil
 
@@ -153,9 +156,17 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+async def status_task():
+    while True:
+        random_status = random.choice(open(quotes_path).readlines())
+        await client.change_presence(activity=discord.Game(name=random_status))
+        await asyncio.sleep(60)
+
+
 @client.event
 async def on_ready():
     log.info(f'Bot has logged in as {client.user}.')
+    client.loop.create_task(status_task()) 
 
 @client.event
 async def on_message(message):
@@ -165,8 +176,10 @@ async def on_message(message):
         return
     
     if client.user.mention in message.content.split():
-        await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-
+        if beta == "true":
+            await message.channel.send(f'milo (and forge) harmonix. Running **BETA** version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+        else:
+            await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
     if message.channel.id != BOT_CHANNEL and message.guild:
         return
     
@@ -246,7 +259,14 @@ async def on_message(message):
     os.chdir(current_directory)
     
     line = random.choice(open(conversion_quotes_path).readlines())
-
+    if os.path.isfile("totalconversions.txt"):
+        with open("totalconversions.txt", "r") as f:
+            totalconversions = int(f.read())
+        with open("totalconversions.txt", "w") as f:
+            f.write(str(totalconversions+1))
+    else:
+        with open("totalconversions.txt", "w") as f:
+            f.write("1")
     await message.channel.send(f'{line}')
 
     match file_format:

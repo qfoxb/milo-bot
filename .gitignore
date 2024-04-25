@@ -152,7 +152,7 @@ cython_debug/
 #.idea/
 
 
-#mackiloha
+#mackiloha & forgetool
 superfreq
 superfreq.exe
 ForgeTool.exe
@@ -171,3 +171,4 @@ env
 discord.log
 temp
 tmp/
+totalconversions.txt
