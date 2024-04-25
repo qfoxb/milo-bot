@@ -176,8 +176,10 @@ async def on_message(message):
         return
     
     if client.user.mention in message.content.split():
-        await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
-
+        if beta == "true":
+            await message.channel.send(f'milo (and forge) harmonix. Running **BETA** version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
+        else:
+            await message.channel.send(f'milo (and forge) harmonix. Running version {__version__}, '+' Ping: {0}ms\n'.format(round(client.latency * 1000, 1)))
     if message.channel.id != BOT_CHANNEL and message.guild:
         return
     
