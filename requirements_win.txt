@@ -1,5 +1,5 @@
 discord.py==2.3.2
-packaging==24.0
+packaging==24.1
 python-dotenv==1.0.1
 python_magic==0.4.27
 python-magic-bin==0.4.14
