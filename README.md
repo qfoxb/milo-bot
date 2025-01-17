@@ -1,3 +1,5 @@
+> [!WARNING]
+> This project has been deprecated in favor of a much better, much more fully featured program, [MiloEditor by ihatecompvir](https://github.com/ihatecompvir/MiloEditor/)
 # MiloBot
 ### .env values
 ```
